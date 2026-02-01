@@ -14,6 +14,7 @@ import com.reshare.converter.MAX_FILE_SIZE
 import com.reshare.converter.OutputFormat
 import com.reshare.converter.PandocConverter
 import com.reshare.converter.PdfConverter
+import com.reshare.notification.ProgressNotifier
 import com.reshare.share.ShareHandler
 import com.reshare.ui.FormatPickerDialog
 import kotlinx.coroutines.launch
@@ -129,6 +130,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startConversion(input: PandocConverter.ConversionInput, outputFormat: OutputFormat) {
+        val progressNotifier = ProgressNotifier(this)
+        progressNotifier.showProgress()
+
         lifecycleScope.launch {
             try {
                 val result = if (outputFormat == OutputFormat.PDF) {
@@ -137,6 +141,8 @@ class MainActivity : AppCompatActivity() {
                     PandocConverter(this@MainActivity).convert(input, outputFormat)
                 }
 
+                progressNotifier.hideProgress()
+
                 result.onSuccess { file ->
                     ShareHandler(this@MainActivity).shareFile(file, outputFormat)
                     finish()
@@ -144,6 +150,7 @@ class MainActivity : AppCompatActivity() {
                     showError(error as? ConversionError ?: ConversionError.ProcessFailed(-1, error.message ?: "Unknown error"))
                 }
             } catch (e: Exception) {
+                progressNotifier.hideProgress()
                 showError(ConversionError.ProcessFailed(-1, e.message ?: "Unknown error"))
             }
         }
