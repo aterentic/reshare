@@ -80,11 +80,16 @@ class MainActivity : AppCompatActivity() {
                     return
                 }
 
+                // Read content from URI - use content bytes, not URI
                 val content = contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                    ?: run {
+                        showError(ConversionError.InputError("Cannot read file"))
+                        return
+                    }
 
                 PandocConverter.ConversionInput(
                     content = content,
-                    contentUri = uri,
+                    contentUri = null,
                     inputFormat = inputFormat
                 )
             }

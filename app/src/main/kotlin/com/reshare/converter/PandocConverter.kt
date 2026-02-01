@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
  * Input formats supported by Pandoc.
  */
 enum class InputFormat(val pandocFlag: String, val mimeTypes: List<String>) {
-    PLAIN("plain", listOf("text/plain")),
+    PLAIN("markdown", listOf("text/plain")),  // Use markdown reader for plain text (passes through)
     MARKDOWN("markdown", listOf("text/markdown", "text/x-markdown")),
     HTML("html", listOf("text/html")),
     DOCX("docx", listOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document")),
@@ -110,6 +110,42 @@ class PandocConverter(private val context: Context) {
         File(context.cacheDir, "converted").also { it.mkdirs() }
     }
 
+    private val libSymlinkDir: File by lazy {
+        File(context.cacheDir, "lib").also { it.mkdirs() }
+    }
+
+    /**
+     * Creates symlinks for versioned library names that Pandoc expects.
+     * Pandoc is linked against libz.so.1 but Android requires lib*.so naming.
+     * Returns the directory containing the symlinks.
+     */
+    private fun setupLibrarySymlinks(nativeLibDir: String): File? {
+        return try {
+            // Map of expected soname -> actual file in nativeLibDir
+            val symlinkMap = mapOf(
+                "libz.so.1" to "libz.so",
+                "liblua5.4.so.5.4" to "liblua5.4.so"
+            )
+
+            for ((linkName, targetName) in symlinkMap) {
+                val linkFile = File(libSymlinkDir, linkName)
+                val targetFile = File(nativeLibDir, targetName)
+
+                if (!linkFile.exists() && targetFile.exists()) {
+                    // Create symlink using ln -sf
+                    val process = ProcessBuilder("ln", "-sf", targetFile.absolutePath, linkFile.absolutePath)
+                        .redirectErrorStream(true)
+                        .start()
+                    process.waitFor()
+                }
+            }
+
+            libSymlinkDir
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     /**
      * Converts input to the specified output format.
      *
@@ -195,13 +231,17 @@ class PandocConverter(private val context: Context) {
         val nativeLibDir = context.applicationInfo.nativeLibraryDir
         val pandocPath = "$nativeLibDir/libpandoc.so"
 
+        // Create symlinks for versioned library names that Pandoc expects
+        val libDir = setupLibrarySymlinks(nativeLibDir)
+            ?: return Result.failure(ConversionError.ProcessFailed(-1, "Failed to setup library symlinks"))
+
         val command = buildCommand(pandocPath, inputFormat, outputFormat, inputFile, outputFile)
 
         return try {
             val process = ProcessBuilder(command)
                 .directory(context.cacheDir)
                 .apply {
-                    environment()["LD_LIBRARY_PATH"] = nativeLibDir
+                    environment()["LD_LIBRARY_PATH"] = "$libDir:$nativeLibDir"
                 }
                 .redirectErrorStream(true)
                 .start()
