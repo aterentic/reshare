@@ -7,12 +7,16 @@ import android.os.Bundle
 import android.provider.OpenableColumns
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.reshare.converter.ConversionError
 import com.reshare.converter.FormatDetector
 import com.reshare.converter.MAX_FILE_SIZE
 import com.reshare.converter.OutputFormat
 import com.reshare.converter.PandocConverter
+import com.reshare.converter.PdfConverter
+import com.reshare.share.ShareHandler
 import com.reshare.ui.FormatPickerDialog
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -125,7 +129,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startConversion(input: PandocConverter.ConversionInput, outputFormat: OutputFormat) {
-        // TODO: Start conversion with progress notification (Phase 4)
-        Toast.makeText(this, "Converting to ${outputFormat.name}...", Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            try {
+                val result = if (outputFormat == OutputFormat.PDF) {
+                    PdfConverter(this@MainActivity).convertToPdf(input)
+                } else {
+                    PandocConverter(this@MainActivity).convert(input, outputFormat)
+                }
+
+                result.onSuccess { file ->
+                    ShareHandler(this@MainActivity).shareFile(file, outputFormat)
+                    finish()
+                }.onFailure { error ->
+                    showError(error as? ConversionError ?: ConversionError.ProcessFailed(-1, error.message ?: "Unknown error"))
+                }
+            } catch (e: Exception) {
+                showError(ConversionError.ProcessFailed(-1, e.message ?: "Unknown error"))
+            }
+        }
     }
 }
