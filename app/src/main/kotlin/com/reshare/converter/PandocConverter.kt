@@ -53,9 +53,9 @@ sealed class ConversionError : Exception() {
 }
 
 /**
- * Maximum file size for conversion (1 MB).
+ * Maximum file size for conversion (10 MB).
  */
-const val MAX_FILE_SIZE: Long = 1_000_000
+const val MAX_FILE_SIZE: Long = 10_000_000
 
 /**
  * Timeout for Pandoc process execution in seconds.
