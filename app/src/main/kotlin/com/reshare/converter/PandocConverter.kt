@@ -28,6 +28,7 @@ enum class InputFormat(val pandocFlag: String, val mimeTypes: List<String>) {
  * Note: PDF is handled separately via HTML -> WebView -> PrintManager.
  */
 enum class OutputFormat(val pandocFlag: String, val extension: String, val mimeType: String) {
+    PDF("html", "pdf", "application/pdf"),
     DOCX("docx", "docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
     HTML("html", "html", "text/html"),
     MARKDOWN("markdown", "md", "text/markdown"),

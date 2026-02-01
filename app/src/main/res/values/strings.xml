@@ -2,4 +2,11 @@
 <resources>
     <string name="app_name">ReShare</string>
     <string name="welcome_message">Share a document to convert it</string>
+    <string name="convert_to">Convert to:</string>
+    <string name="format_pdf">PDF</string>
+    <string name="format_docx">DOCX</string>
+    <string name="format_html">HTML</string>
+    <string name="format_markdown">Markdown</string>
+    <string name="format_plain">Plain Text</string>
+    <string name="cancel">Cancel</string>
 </resources>

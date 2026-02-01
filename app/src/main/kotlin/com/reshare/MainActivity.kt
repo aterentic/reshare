@@ -10,7 +10,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.reshare.converter.ConversionError
 import com.reshare.converter.FormatDetector
 import com.reshare.converter.MAX_FILE_SIZE
+import com.reshare.converter.OutputFormat
 import com.reshare.converter.PandocConverter
+import com.reshare.ui.FormatPickerDialog
 
 class MainActivity : AppCompatActivity() {
 
@@ -111,7 +113,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showFormatPicker(input: PandocConverter.ConversionInput) {
-        // TODO: Show format picker dialog (next task)
-        Toast.makeText(this, "Detected: ${input.inputFormat.name}", Toast.LENGTH_SHORT).show()
+        FormatPickerDialog.newInstance(
+            inputFormat = input.inputFormat,
+            onFormatSelected = { outputFormat ->
+                startConversion(input, outputFormat)
+            },
+            onCancelled = {
+                finish()
+            }
+        ).show(supportFragmentManager, "format_picker")
+    }
+
+    private fun startConversion(input: PandocConverter.ConversionInput, outputFormat: OutputFormat) {
+        // TODO: Start conversion with progress notification (Phase 4)
+        Toast.makeText(this, "Converting to ${outputFormat.name}...", Toast.LENGTH_SHORT).show()
     }
 }
