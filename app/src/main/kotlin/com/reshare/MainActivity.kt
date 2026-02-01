@@ -5,7 +5,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.OpenableColumns
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.reshare.converter.ConversionError
@@ -108,13 +107,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showError(error: ConversionError) {
-        Toast.makeText(this, error.message, Toast.LENGTH_LONG).show()
+        ProgressNotifier(this).showError(error)
         finish()
     }
 
     private fun showNotShareLaunchedMessage() {
-        Toast.makeText(this, "Share a document to convert it", Toast.LENGTH_SHORT).show()
-        finish()
+        showError(ConversionError.InputError("Share a document to convert it"))
     }
 
     private fun showFormatPicker(input: PandocConverter.ConversionInput) {
