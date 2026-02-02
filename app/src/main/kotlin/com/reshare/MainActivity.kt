@@ -13,6 +13,7 @@ import com.reshare.converter.MAX_FILE_SIZE
 import com.reshare.converter.OutputFormat
 import com.reshare.converter.PandocConverter
 import com.reshare.converter.PdfConverter
+import com.reshare.notification.NotificationPermissionManager
 import com.reshare.notification.ProgressNotifier
 import com.reshare.share.ShareHandler
 import com.reshare.ui.FormatPickerDialog
@@ -21,11 +22,19 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
 
     private lateinit var formatDetector: FormatDetector
+    private lateinit var permissionManager: NotificationPermissionManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         formatDetector = FormatDetector(contentResolver)
+
+        // Register permission manager before activity starts
+        permissionManager = NotificationPermissionManager(this)
+        permissionManager.register()
+
+        // Request notification permission on first launch or share
+        permissionManager.requestIfNeeded()
 
         when (intent?.action) {
             Intent.ACTION_SEND -> handleShareIntent(intent)
