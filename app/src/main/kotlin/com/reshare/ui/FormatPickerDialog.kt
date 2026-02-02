@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageButton
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.reshare.R
 import com.reshare.converter.InputFormat
@@ -46,7 +47,7 @@ class FormatPickerDialog : BottomSheetDialogFragment() {
         hideMatchingFormat(view)
     }
 
-    private fun setupFormatButton(button: Button, format: OutputFormat) {
+    private fun setupFormatButton(button: ImageButton, format: OutputFormat) {
         button.setOnClickListener {
             dismiss()
             onFormatSelected?.invoke(format)
@@ -57,10 +58,10 @@ class FormatPickerDialog : BottomSheetDialogFragment() {
         val input = inputFormat ?: return
 
         val buttonToHide = when (input) {
-            InputFormat.PLAIN -> view.findViewById<Button>(R.id.btnPlain)
-            InputFormat.MARKDOWN -> view.findViewById<Button>(R.id.btnMarkdown)
-            InputFormat.HTML -> view.findViewById<Button>(R.id.btnHtml)
-            InputFormat.DOCX -> view.findViewById<Button>(R.id.btnDocx)
+            InputFormat.PLAIN -> view.findViewById<ImageButton>(R.id.btnPlain)
+            InputFormat.MARKDOWN -> view.findViewById<ImageButton>(R.id.btnMarkdown)
+            InputFormat.HTML -> view.findViewById<ImageButton>(R.id.btnHtml)
+            InputFormat.DOCX -> view.findViewById<ImageButton>(R.id.btnDocx)
             InputFormat.ODT, InputFormat.EPUB -> null
         }
 

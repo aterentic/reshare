@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -13,61 +14,76 @@
         android:textStyle="bold"
         android:layout_marginBottom="16dp"/>
 
-    <LinearLayout
+    <GridLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
+        android:columnCount="3"
+        android:rowCount="2"
+        android:alignmentMode="alignMargins"
+        android:useDefaultMargins="true"
         android:layout_marginBottom="8dp">
 
-        <Button
+        <ImageButton
             android:id="@+id/btnPdf"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/format_pdf"
-            android:layout_marginEnd="8dp"
-            style="@style/Widget.Material3.Button.OutlinedButton"/>
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:src="@drawable/ic_format_pdf"
+            android:scaleType="fitCenter"
+            android:padding="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/format_pdf_desc"/>
 
-        <Button
+        <ImageButton
             android:id="@+id/btnDocx"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/format_docx"
-            android:layout_marginEnd="8dp"
-            style="@style/Widget.Material3.Button.OutlinedButton"/>
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:src="@drawable/ic_format_docx"
+            android:scaleType="fitCenter"
+            android:padding="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/format_docx_desc"/>
 
-        <Button
+        <ImageButton
             android:id="@+id/btnHtml"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/format_html"
-            style="@style/Widget.Material3.Button.OutlinedButton"/>
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:src="@drawable/ic_format_html"
+            android:scaleType="fitCenter"
+            android:padding="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/format_html_desc"/>
 
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginBottom="8dp">
-
-        <Button
+        <ImageButton
             android:id="@+id/btnMarkdown"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/format_markdown"
-            android:layout_marginEnd="8dp"
-            style="@style/Widget.Material3.Button.OutlinedButton"/>
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:src="@drawable/ic_format_markdown"
+            android:scaleType="fitCenter"
+            android:padding="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/format_markdown_desc"/>
 
-        <Button
+        <ImageButton
             android:id="@+id/btnPlain"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/format_plain"
-            style="@style/Widget.Material3.Button.OutlinedButton"/>
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:src="@drawable/ic_format_plain"
+            android:scaleType="fitCenter"
+            android:padding="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/format_plain_desc"/>
 
-    </LinearLayout>
+    </GridLayout>
 
     <Button
         android:id="@+id/btnCancel"
