@@ -31,4 +31,21 @@ class ShareHandler(private val context: Context) {
         chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(chooser)
     }
+
+    /**
+     * Shares plain text content directly via EXTRA_TEXT.
+     * Used for sharing document content as a chat message instead of a file.
+     *
+     * @param text The text content to share
+     */
+    fun shareText(text: String) {
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, text)
+        }
+
+        val chooser = Intent.createChooser(shareIntent, "Share as text")
+        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(chooser)
+    }
 }

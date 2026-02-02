@@ -155,7 +155,14 @@ class MainActivity : AppCompatActivity() {
                 progressNotifier.hideProgress()
 
                 result.onSuccess { file ->
-                    ShareHandler(this@MainActivity).shareFile(file, outputFormat)
+                    if (outputFormat == OutputFormat.PLAIN) {
+                        // Share plain text content directly instead of as file
+                        val text = file.readText(Charsets.UTF_8)
+                        file.delete()
+                        ShareHandler(this@MainActivity).shareText(text)
+                    } else {
+                        ShareHandler(this@MainActivity).shareFile(file, outputFormat)
+                    }
                     finish()
                 }.onFailure { error ->
                     showError(error as? ConversionError ?: ConversionError.ProcessFailed(-1, error.message ?: "Unknown error"))
