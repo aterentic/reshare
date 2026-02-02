@@ -64,6 +64,9 @@ class ProgressNotifier(private val context: Context) {
     }
 
     fun showError(error: ConversionError) {
+        // Always show toast - works without permission
+        ToastErrorReporter.showError(context, error)
+
         val (title, message) = when (error) {
             is ConversionError.FileTooLarge ->
                 "File too large" to "File exceeds ${error.maxBytes / 1_000_000} MB limit"
@@ -77,6 +80,7 @@ class ProgressNotifier(private val context: Context) {
                 "Input error" to error.message
         }
 
+        // Also show notification for persistence (may be blocked by permission)
         showErrorNotification(title, message)
     }
 
