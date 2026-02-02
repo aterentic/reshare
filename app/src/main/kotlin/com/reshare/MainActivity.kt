@@ -36,17 +36,20 @@ class MainActivity : AppCompatActivity() {
         // Request notification permission on first launch or share
         permissionManager.requestIfNeeded()
 
-        when (intent?.action) {
-            Intent.ACTION_SEND -> handleShareIntent(intent)
-            else -> showNotShareLaunchedMessage()
+        if (intent?.action == Intent.ACTION_SEND) {
+            handleShareIntent(intent)
+        } else {
+            // Not a share intent - close silently
+            finish()
         }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        when (intent.action) {
-            Intent.ACTION_SEND -> handleShareIntent(intent)
-            else -> showNotShareLaunchedMessage()
+        if (intent.action == Intent.ACTION_SEND) {
+            handleShareIntent(intent)
+        } else {
+            finish()
         }
     }
 
@@ -123,10 +126,6 @@ class MainActivity : AppCompatActivity() {
     private fun showError(error: ConversionError) {
         ProgressNotifier(this).showError(error)
         finish()
-    }
-
-    private fun showNotShareLaunchedMessage() {
-        showError(ConversionError.InputError("Share a document to convert it"))
     }
 
     private fun showFormatPicker(input: PandocConverter.ConversionInput) {

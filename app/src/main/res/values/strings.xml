@@ -9,4 +9,14 @@
     <string name="format_markdown">Markdown</string>
     <string name="format_plain">Plain Text</string>
     <string name="cancel">Cancel</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_header">Settings</string>
+    <string name="settings_notifications_title">Show notifications</string>
+    <string name="settings_notifications_summary">Display progress and error notifications during conversion</string>
+
+    <!-- Usage -->
+    <string name="usage_header">How to use</string>
+    <string name="usage_instructions">1. Open a document in another app\n2. Tap Share\n3. Select ReShare\n4. Choose output format\n5. Share the converted file</string>
 </resources>

@@ -12,14 +12,20 @@
         android:theme="@style/Theme.ReShare">
 
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.SettingsActivity"
             android:exported="true"
             android:label="@string/app_name">
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Transparent">
 
             <!-- Share intent filter for text -->
             <intent-filter>
