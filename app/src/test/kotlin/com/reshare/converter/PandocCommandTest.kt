@@ -1,6 +1,7 @@
 package com.reshare.converter
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -45,8 +46,9 @@ class PandocCommandTest {
             outputFile = outputFile
         )
 
+        // PLAIN uses "markdown" reader as a passthrough
         assertEquals(
-            listOf(pandocPath, "-f", "plain", "-t", "docx", "/tmp/input.txt", "-o", "/tmp/output.docx"),
+            listOf(pandocPath, "-f", "markdown", "-t", "docx", "/tmp/input.txt", "-o", "/tmp/output.docx"),
             command
         )
     }
@@ -211,9 +213,9 @@ class PandocCommandTest {
     // InputFormat tests
 
     @Test
-    fun `InputFormat fromMimeType returns correct format for text plain`() {
+    fun `InputFormat fromMimeType returns null for text plain to allow content sniffing`() {
         val format = InputFormat.fromMimeType("text/plain")
-        assertEquals(InputFormat.PLAIN, format)
+        assertNull(format)
     }
 
     @Test

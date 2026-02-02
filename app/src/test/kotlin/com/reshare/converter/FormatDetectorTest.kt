@@ -56,6 +56,11 @@ class FormatDetectorTest {
     }
 
     @Test
+    fun `detectFromExtension returns ORG for org files`() {
+        assertEquals(InputFormat.ORG, FormatDetector.detectFromExtension("notes.org"))
+    }
+
+    @Test
     fun `detectFromExtension is case insensitive`() {
         assertEquals(InputFormat.MARKDOWN, FormatDetector.detectFromExtension("README.MD"))
         assertEquals(InputFormat.HTML, FormatDetector.detectFromExtension("Page.HTML"))
@@ -152,6 +157,45 @@ class FormatDetectorTest {
         assertNull(FormatDetector.sniffContent(content))
     }
 
+    // Org mode content sniffing tests
+
+    @Test
+    fun `sniffContent detects Org with headline`() {
+        val content = "* My Headline\n\nSome content here.".toByteArray()
+        assertEquals(InputFormat.ORG, FormatDetector.sniffContent(content))
+    }
+
+    @Test
+    fun `sniffContent detects Org with nested headlines`() {
+        val content = "** Second level\n*** Third level".toByteArray()
+        assertEquals(InputFormat.ORG, FormatDetector.sniffContent(content))
+    }
+
+    @Test
+    fun `sniffContent detects Org with metadata`() {
+        val content = "#+TITLE: My Document\n#+AUTHOR: Someone\n\nContent".toByteArray()
+        assertEquals(InputFormat.ORG, FormatDetector.sniffContent(content))
+    }
+
+    @Test
+    fun `sniffContent detects Org with link`() {
+        val content = "Check out [[https://example.com]] for more info.".toByteArray()
+        assertEquals(InputFormat.ORG, FormatDetector.sniffContent(content))
+    }
+
+    @Test
+    fun `sniffContent detects Org with link and description`() {
+        val content = "Visit [[https://example.com][Example Site]] today.".toByteArray()
+        assertEquals(InputFormat.ORG, FormatDetector.sniffContent(content))
+    }
+
+    @Test
+    fun `sniffContent requires space after org headline asterisks`() {
+        // This should NOT be detected as org - no space after *
+        val content = "*bold* and *emphasis* without space".toByteArray()
+        assertNull(FormatDetector.sniffContent(content))
+    }
+
     // ZIP-based format sniffing tests
 
     @Test
@@ -207,8 +251,8 @@ class FormatDetectorTest {
     // MIME type tests (using InputFormat.fromMimeType directly)
 
     @Test
-    fun `fromMimeType returns PLAIN for text plain`() {
-        assertEquals(InputFormat.PLAIN, InputFormat.fromMimeType("text/plain"))
+    fun `fromMimeType returns null for text plain to allow content sniffing`() {
+        assertNull(InputFormat.fromMimeType("text/plain"))
     }
 
     @Test
@@ -254,11 +298,21 @@ class FormatDetectorTest {
         assertNull(InputFormat.fromMimeType("application/pdf"))
     }
 
+    @Test
+    fun `fromMimeType returns ORG for text org`() {
+        assertEquals(InputFormat.ORG, InputFormat.fromMimeType("text/org"))
+    }
+
+    @Test
+    fun `fromMimeType returns ORG for text x-org`() {
+        assertEquals(InputFormat.ORG, InputFormat.fromMimeType("text/x-org"))
+    }
+
     // Extension map completeness test
 
     @Test
     fun `extension map contains all expected extensions`() {
-        val expected = setOf("txt", "md", "markdown", "html", "htm", "docx", "odt", "epub")
+        val expected = setOf("txt", "md", "markdown", "org", "html", "htm", "docx", "odt", "epub")
         assertEquals(expected, FormatDetector.EXTENSION_MAP.keys)
     }
 

@@ -23,6 +23,7 @@ class FormatDetector(private val contentResolver: ContentResolver) {
         "txt" to InputFormat.PLAIN,
         "md" to InputFormat.MARKDOWN,
         "markdown" to InputFormat.MARKDOWN,
+        "org" to InputFormat.ORG,
         "html" to InputFormat.HTML,
         "htm" to InputFormat.HTML,
         "docx" to InputFormat.DOCX,
@@ -38,7 +39,10 @@ class FormatDetector(private val contentResolver: ContentResolver) {
         val uri = intent.data ?: getUriFromIntent(intent)
 
         val fileName = uri?.let { getFileName(it) }
+
+        // Get content from URI or EXTRA_TEXT for sniffing
         val content = uri?.let { readContent(it) }
+            ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toByteArray(Charsets.UTF_8)
 
         return detectFormat(mimeType, fileName, content)
     }
@@ -115,6 +119,14 @@ class FormatDetector(private val contentResolver: ContentResolver) {
             return InputFormat.HTML
         }
 
+        // Org mode detection (headlines, metadata, links)
+        if (text.contains(Regex("^\\*+\\s", RegexOption.MULTILINE)) ||  // * Headline
+            text.contains(Regex("^#\\+[A-Z]+:", RegexOption.MULTILINE)) ||  // #+TITLE:
+            text.contains(Regex("\\[\\[.+\\]\\]"))  // [[link]] or [[link][desc]]
+        ) {
+            return InputFormat.ORG
+        }
+
         // Markdown heuristics (headers, links, code blocks)
         if (text.contains(Regex("^#{1,6}\\s", RegexOption.MULTILINE)) ||
             text.contains(Regex("\\[.+\\]\\(.+\\)")) ||
@@ -186,6 +198,7 @@ class FormatDetector(private val contentResolver: ContentResolver) {
             "txt" to InputFormat.PLAIN,
             "md" to InputFormat.MARKDOWN,
             "markdown" to InputFormat.MARKDOWN,
+            "org" to InputFormat.ORG,
             "html" to InputFormat.HTML,
             "htm" to InputFormat.HTML,
             "docx" to InputFormat.DOCX,
@@ -223,6 +236,14 @@ class FormatDetector(private val contentResolver: ContentResolver) {
                 text.contains("<html", ignoreCase = true)
             ) {
                 return InputFormat.HTML
+            }
+
+            // Org mode detection (headlines, metadata, links)
+            if (text.contains(Regex("^\\*+\\s", RegexOption.MULTILINE)) ||  // * Headline
+                text.contains(Regex("^#\\+[A-Z]+:", RegexOption.MULTILINE)) ||  // #+TITLE:
+                text.contains(Regex("\\[\\[.+\\]\\]"))  // [[link]] or [[link][desc]]
+            ) {
+                return InputFormat.ORG
             }
 
             // Markdown heuristics (headers, links, code blocks)

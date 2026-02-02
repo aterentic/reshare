@@ -62,7 +62,7 @@ class FormatPickerDialog : BottomSheetDialogFragment() {
             InputFormat.MARKDOWN -> view.findViewById<ImageButton>(R.id.btnMarkdown)
             InputFormat.HTML -> view.findViewById<ImageButton>(R.id.btnHtml)
             InputFormat.DOCX -> view.findViewById<ImageButton>(R.id.btnDocx)
-            InputFormat.ODT, InputFormat.EPUB -> null
+            InputFormat.ORG, InputFormat.ODT, InputFormat.EPUB -> null
         }
 
         buttonToHide?.visibility = View.GONE

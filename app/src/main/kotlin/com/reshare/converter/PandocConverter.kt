@@ -10,8 +10,9 @@ import java.util.concurrent.TimeUnit
  * Input formats supported by Pandoc.
  */
 enum class InputFormat(val pandocFlag: String, val mimeTypes: List<String>) {
-    PLAIN("markdown", listOf("text/plain")),  // Use markdown reader for plain text (passes through)
+    PLAIN("markdown", emptyList()),  // No MIME type - detected via content sniffing fallback
     MARKDOWN("markdown", listOf("text/markdown", "text/x-markdown")),
+    ORG("org", listOf("text/org", "text/x-org")),
     HTML("html", listOf("text/html")),
     DOCX("docx", listOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document")),
     ODT("odt", listOf("application/vnd.oasis.opendocument.text")),
