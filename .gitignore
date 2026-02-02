@@ -2,6 +2,8 @@
 .gradle/
 build/
 local.properties
+gradle.properties
+gradle/wrapper/gradle-wrapper.jar
 
 # IDE
 .idea/
@@ -16,3 +18,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Project-specific
+.docs/
+CLAUDE.md
