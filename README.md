@@ -2,6 +2,10 @@
 
 Android app that receives shared documents, converts them via Pandoc, and reshares to other targets.
 
+## User Guide
+
+See [docs/USER_GUIDE.md](docs/USER_GUIDE.md) for installation and usage instructions.
+
 ## Architecture
 
 ### Share Intent Flow
