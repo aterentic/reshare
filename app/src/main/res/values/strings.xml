@@ -28,6 +28,11 @@
     <string name="save_failed">Failed to save file</string>
     <string name="save_success">File saved</string>
 
+    <!-- Text preview -->
+    <string name="text_preview_title">Preview</string>
+    <string name="share_selection">Share Selection</string>
+    <string name="share_all">Share All</string>
+
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="settings_header">Settings</string>

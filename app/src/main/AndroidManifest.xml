@@ -109,6 +109,11 @@
         </activity>
 
         <activity
+            android:name=".ui.TextPreviewActivity"
+            android:exported="false"
+            android:label="@string/text_preview_title" />
+
+        <activity
             android:name=".ui.ErrorDetailsActivity"
             android:theme="@style/Theme.Transparent"
             android:exported="false"/>

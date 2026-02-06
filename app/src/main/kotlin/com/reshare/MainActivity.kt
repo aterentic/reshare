@@ -25,6 +25,7 @@ import com.reshare.share.StorageSaver
 import com.reshare.ui.FormatPickerDialog
 import com.reshare.ui.FormatPreferences
 import com.reshare.ui.PostConversionDialog
+import com.reshare.ui.TextPreviewActivity
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -34,11 +35,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var formatPreferences: FormatPreferences
     private lateinit var permissionManager: NotificationPermissionManager
     private lateinit var safLauncher: ActivityResultLauncher<Intent>
+    private lateinit var previewLauncher: ActivityResultLauncher<Intent>
 
-    /** File pending SAF save (null when saving text). */
+    /** File pending SAF save. */
     private var pendingSaveFile: File? = null
-    /** Text pending SAF save (null when saving a file). */
-    private var pendingSaveText: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +48,10 @@ class MainActivity : AppCompatActivity() {
 
         safLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             handleSafResult(result.resultCode, result.data)
+        }
+
+        previewLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            finish()
         }
 
         // Register permission manager before activity starts
@@ -311,29 +315,26 @@ class MainActivity : AppCompatActivity() {
         val shareAsText = outputFormat.isTextBased &&
             SharePreferences(this).shareTextFormatsAsText
 
+        if (shareAsText) {
+            val intent = TextPreviewActivity.newIntent(
+                context = this,
+                file = file,
+                mimeType = outputFormat.mimeType,
+                extension = outputFormat.extension
+            )
+            previewLauncher.launch(intent)
+            return
+        }
+
         PostConversionDialog.show(
             context = this,
             onShare = {
-                if (shareAsText) {
-                    val text = file.readText(Charsets.UTF_8)
-                    file.delete()
-                    ShareHandler(this).shareText(text)
-                } else {
-                    ShareHandler(this).shareFile(file, outputFormat)
-                }
+                ShareHandler(this).shareFile(file, outputFormat)
                 finish()
             },
             onSaveTo = {
-                val suggestedName = "converted.${outputFormat.extension}"
-                if (shareAsText) {
-                    pendingSaveText = file.readText(Charsets.UTF_8)
-                    pendingSaveFile = null
-                    file.delete()
-                } else {
-                    pendingSaveFile = file
-                    pendingSaveText = null
-                }
-                launchSafPicker(outputFormat.mimeType, suggestedName)
+                pendingSaveFile = file
+                launchSafPicker(outputFormat.mimeType, "converted.${outputFormat.extension}")
             },
             onCancelled = {
                 file.delete()
@@ -356,25 +357,19 @@ class MainActivity : AppCompatActivity() {
         if (resultCode != RESULT_OK || uri == null) {
             pendingSaveFile?.delete()
             pendingSaveFile = null
-            pendingSaveText = null
             finish()
             return
         }
 
-        val saver = StorageSaver(contentResolver)
-        val saved = when {
-            pendingSaveFile != null -> {
-                val ok = saver.saveToUri(pendingSaveFile!!, uri)
-                pendingSaveFile!!.delete()
-                pendingSaveFile = null
-                ok
-            }
-            pendingSaveText != null -> {
-                val ok = saver.saveTextToUri(pendingSaveText!!, uri)
-                pendingSaveText = null
-                ok
-            }
-            else -> false
+        val file = pendingSaveFile
+        pendingSaveFile = null
+
+        val saved = if (file != null) {
+            val ok = StorageSaver(contentResolver).saveToUri(file, uri)
+            file.delete()
+            ok
+        } else {
+            false
         }
 
         if (saved) {
