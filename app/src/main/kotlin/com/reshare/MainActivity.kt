@@ -30,7 +30,9 @@ import com.reshare.ui.FormatPreferences
 import com.reshare.ui.PostConversionDialog
 import com.reshare.ui.TemplatePickerDialog
 import com.reshare.ui.TextPreviewActivity
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class MainActivity : AppCompatActivity() {
@@ -222,11 +224,13 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                val result = if (outputFormat == OutputFormat.PDF) {
-                    PdfConverter(this@MainActivity).convertToPdf(input, cssContent)
-                } else {
-                    val cssFile = writeCssToCache(cssContent)
-                    PandocConverter(this@MainActivity).convert(input, outputFormat, cssFile)
+                val result = withContext(Dispatchers.IO) {
+                    if (outputFormat == OutputFormat.PDF) {
+                        PdfConverter(this@MainActivity).convertToPdf(input, cssContent)
+                    } else {
+                        val cssFile = writeCssToCache(cssContent)
+                        PandocConverter(this@MainActivity).convert(input, outputFormat, cssFile)
+                    }
                 }
 
                 progressNotifier.hideProgress()
@@ -339,10 +343,12 @@ class MainActivity : AppCompatActivity() {
                 val inputName = getFileName(uri) ?: "Shared file"
 
                 try {
-                    val result = if (outputFormat == OutputFormat.PDF) {
-                        PdfConverter(this@MainActivity).convertToPdf(input, cssContent)
-                    } else {
-                        PandocConverter(this@MainActivity).convert(input, outputFormat, cssFile)
+                    val result = withContext(Dispatchers.IO) {
+                        if (outputFormat == OutputFormat.PDF) {
+                            PdfConverter(this@MainActivity).convertToPdf(input, cssContent)
+                        } else {
+                            PandocConverter(this@MainActivity).convert(input, outputFormat, cssFile)
+                        }
                     }
 
                     result.onSuccess { file ->

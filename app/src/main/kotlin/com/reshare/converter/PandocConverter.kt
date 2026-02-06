@@ -2,21 +2,24 @@ package com.reshare.converter
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import java.io.File
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
+private const val TAG = "PandocConverter"
+
 /**
  * Input formats supported by Pandoc.
  */
-enum class InputFormat(val pandocFlag: String, val mimeTypes: List<String>) {
+enum class InputFormat(val pandocFlag: String, val mimeTypes: List<String>, val requiresFileInput: Boolean = false) {
     PLAIN("markdown", emptyList()),  // No MIME type - detected via content sniffing fallback
     MARKDOWN("markdown", listOf("text/markdown", "text/x-markdown")),
     ORG("org", listOf("text/org", "text/x-org")),
     HTML("html", listOf("text/html")),
-    DOCX("docx", listOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document")),
-    ODT("odt", listOf("application/vnd.oasis.opendocument.text")),
-    EPUB("epub", listOf("application/epub+zip")),
+    DOCX("docx", listOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document"), requiresFileInput = true),
+    ODT("odt", listOf("application/vnd.oasis.opendocument.text"), requiresFileInput = true),
+    EPUB("epub", listOf("application/epub+zip"), requiresFileInput = true),
     LATEX("latex", listOf("application/x-latex", "application/x-tex"));
 
     companion object {
@@ -177,6 +180,25 @@ class PandocConverter(private val context: Context) {
         if (content.size > MAX_FILE_SIZE) {
             return Result.failure(ConversionError.FileTooLarge(content.size.toLong()))
         }
+
+        // Archive formats (EPUB, DOCX, ODT) require file input — ZIP needs random access
+        if (inputFormat.requiresFileInput) {
+            val tempFile = File(context.cacheDir, "input_${UUID.randomUUID()}")
+            return try {
+                tempFile.writeBytes(content)
+                runPandoc(
+                    inputFile = tempFile,
+                    inputBytes = null,
+                    inputFormat = inputFormat,
+                    outputFormat = outputFormat,
+                    outputFile = outputFile,
+                    cssFile = cssFile
+                )
+            } finally {
+                tempFile.delete()
+            }
+        }
+
         return runPandoc(
             inputFile = null,
             inputBytes = content,
@@ -269,15 +291,18 @@ class PandocConverter(private val context: Context) {
             val exitCode = process.exitValue()
             if (exitCode != 0) {
                 val stderr = process.inputStream.bufferedReader().readText()
+                Log.e(TAG, "Pandoc failed (exit $exitCode): $stderr")
                 return Result.failure(ConversionError.ProcessFailed(exitCode, stderr))
             }
 
             if (!outputFile.exists()) {
+                Log.e(TAG, "Output file not created after successful exit")
                 return Result.failure(ConversionError.ProcessFailed(exitCode, "Output file not created"))
             }
 
             Result.success(outputFile)
         } catch (e: Exception) {
+            Log.e(TAG, "Pandoc process error", e)
             Result.failure(ConversionError.ProcessFailed(-1, e.message ?: "Unknown error"))
         }
     }
