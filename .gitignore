@@ -19,6 +19,11 @@ Thumbs.db
 # Logs
 *.log
 
+# Signing
+keystore.properties
+release.keystore
+*.jks
+
 # Project-specific
 .docs/
 CLAUDE.md
