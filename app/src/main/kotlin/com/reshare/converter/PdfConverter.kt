@@ -24,16 +24,22 @@ class PdfConverter(private val context: Context) {
      * Converts the input document to PDF.
      *
      * @param input The input data and format
+     * @param css Optional CSS content to inject into the HTML before rendering
      * @return Result containing the output PDF file on success, or a ConversionError on failure
      */
-    suspend fun convertToPdf(input: PandocConverter.ConversionInput): Result<File> = withContext(Dispatchers.Main) {
+    suspend fun convertToPdf(input: PandocConverter.ConversionInput, css: String? = null): Result<File> = withContext(Dispatchers.Main) {
         try {
             // 1. Convert to HTML via Pandoc
             val pandocConverter = PandocConverter(context)
             val htmlFile = pandocConverter.convert(input, OutputFormat.HTML).getOrThrow()
-            val html = htmlFile.readText()
+            var html = htmlFile.readText()
 
-            // 2. Render in headless WebView
+            // 2. Inject CSS into HTML if provided
+            if (css != null) {
+                html = injectCss(html, css)
+            }
+
+            // 3. Render in headless WebView
             val webView = WebView(context).apply {
                 settings.javaScriptEnabled = false
                 settings.loadWithOverviewMode = true
@@ -62,7 +68,7 @@ class PdfConverter(private val context: Context) {
                 webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null)
             }
 
-            // 3. Print to PDF
+            // 4. Print to PDF
             val outputDir = File(context.cacheDir, "converted")
             outputDir.mkdirs()
             val outputFile = File(outputDir, "${UUID.randomUUID()}.pdf")
@@ -78,6 +84,24 @@ class PdfConverter(private val context: Context) {
             Result.failure(e)
         } catch (e: Exception) {
             Result.failure(ConversionError.ProcessFailed(-1, e.message ?: "Unknown error"))
+        }
+    }
+
+    companion object {
+        /**
+         * Injects a `<style>` block into HTML content.
+         * If the HTML contains a `<head>` tag, the style is inserted at the end of `<head>`.
+         * Otherwise, a `<head>` wrapper is prepended.
+         * Exposed for testing.
+         */
+        internal fun injectCss(html: String, css: String): String {
+            val styleBlock = "<style>\n$css\n</style>"
+            return when {
+                html.contains("</head>", ignoreCase = true) -> {
+                    html.replaceFirst("</head>", "$styleBlock\n</head>", ignoreCase = true)
+                }
+                else -> "$styleBlock\n$html"
+            }
         }
     }
 

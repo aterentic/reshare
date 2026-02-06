@@ -17,6 +17,7 @@ import com.reshare.converter.MAX_FILE_SIZE
 import com.reshare.converter.OutputFormat
 import com.reshare.converter.PandocConverter
 import com.reshare.converter.PdfConverter
+import com.reshare.converter.Template
 import com.reshare.notification.NotificationPermissionManager
 import com.reshare.notification.ProgressNotifier
 import com.reshare.share.ShareHandler
@@ -27,6 +28,7 @@ import com.reshare.history.ConversionRecord
 import com.reshare.ui.FormatPickerDialog
 import com.reshare.ui.FormatPreferences
 import com.reshare.ui.PostConversionDialog
+import com.reshare.ui.TemplatePickerDialog
 import com.reshare.ui.TextPreviewActivity
 import kotlinx.coroutines.launch
 import java.io.File
@@ -185,7 +187,7 @@ class MainActivity : AppCompatActivity() {
             inputFormat = input.inputFormat,
             enabledFormats = enabledFormats,
             onFormatSelected = { outputFormat ->
-                startConversion(input, outputFormat)
+                showTemplatePickerOrConvert(input, outputFormat)
             },
             onCancelled = {
                 finish()
@@ -193,16 +195,38 @@ class MainActivity : AppCompatActivity() {
         ).show(supportFragmentManager, "format_picker")
     }
 
-    private fun startConversion(input: PandocConverter.ConversionInput, outputFormat: OutputFormat) {
+    private fun showTemplatePickerOrConvert(input: PandocConverter.ConversionInput, outputFormat: OutputFormat) {
+        if (!TemplatePickerDialog.supportsTemplates(outputFormat)) {
+            startConversion(input, outputFormat, Template.DEFAULT)
+            return
+        }
+
+        TemplatePickerDialog.show(
+            context = this,
+            outputFormat = outputFormat,
+            formatPreferences = formatPreferences,
+            onTemplateSelected = { template ->
+                startConversion(input, outputFormat, template)
+            },
+            onCancelled = {
+                finish()
+            }
+        )
+    }
+
+    private fun startConversion(input: PandocConverter.ConversionInput, outputFormat: OutputFormat, template: Template) {
         val progressNotifier = ProgressNotifier(this)
         progressNotifier.showProgress()
+
+        val cssContent = loadTemplateCss(template)
 
         lifecycleScope.launch {
             try {
                 val result = if (outputFormat == OutputFormat.PDF) {
-                    PdfConverter(this@MainActivity).convertToPdf(input)
+                    PdfConverter(this@MainActivity).convertToPdf(input, cssContent)
                 } else {
-                    PandocConverter(this@MainActivity).convert(input, outputFormat)
+                    val cssFile = writeCssToCache(cssContent)
+                    PandocConverter(this@MainActivity).convert(input, outputFormat, cssFile)
                 }
 
                 progressNotifier.hideProgress()
@@ -252,7 +276,7 @@ class MainActivity : AppCompatActivity() {
             inputFormat = firstInputFormat,
             enabledFormats = enabledFormats,
             onFormatSelected = { outputFormat ->
-                startBatchConversion(uris, outputFormat)
+                showBatchTemplatePickerOrConvert(uris, outputFormat)
             },
             onCancelled = {
                 finish()
@@ -260,13 +284,34 @@ class MainActivity : AppCompatActivity() {
         ).show(supportFragmentManager, "format_picker")
     }
 
-    private fun startBatchConversion(uris: List<Uri>, outputFormat: OutputFormat) {
+    private fun showBatchTemplatePickerOrConvert(uris: List<Uri>, outputFormat: OutputFormat) {
+        if (!TemplatePickerDialog.supportsTemplates(outputFormat)) {
+            startBatchConversion(uris, outputFormat, Template.DEFAULT)
+            return
+        }
+
+        TemplatePickerDialog.show(
+            context = this,
+            outputFormat = outputFormat,
+            formatPreferences = formatPreferences,
+            onTemplateSelected = { template ->
+                startBatchConversion(uris, outputFormat, template)
+            },
+            onCancelled = {
+                finish()
+            }
+        )
+    }
+
+    private fun startBatchConversion(uris: List<Uri>, outputFormat: OutputFormat, template: Template) {
         val progressNotifier = ProgressNotifier(this)
         val total = uris.size
+        val cssContent = loadTemplateCss(template)
 
         lifecycleScope.launch {
             val convertedFiles = mutableListOf<File>()
             val failures = mutableListOf<Int>()
+            val cssFile = writeCssToCache(cssContent)
 
             for ((index, uri) in uris.withIndex()) {
                 progressNotifier.showBatchProgress(index + 1, total)
@@ -295,9 +340,9 @@ class MainActivity : AppCompatActivity() {
 
                 try {
                     val result = if (outputFormat == OutputFormat.PDF) {
-                        PdfConverter(this@MainActivity).convertToPdf(input)
+                        PdfConverter(this@MainActivity).convertToPdf(input, cssContent)
                     } else {
-                        PandocConverter(this@MainActivity).convert(input, outputFormat)
+                        PandocConverter(this@MainActivity).convert(input, outputFormat, cssFile)
                     }
 
                     result.onSuccess { file ->
@@ -425,5 +470,29 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, R.string.save_failed, Toast.LENGTH_SHORT).show()
         }
         finish()
+    }
+
+    /**
+     * Reads the CSS content for [template] from assets.
+     * Returns null for the Default template (no styling).
+     */
+    private fun loadTemplateCss(template: Template): String? {
+        val path = template.cssAssetPath ?: return null
+        return try {
+            assets.open(path).bufferedReader().use { it.readText() }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    /**
+     * Writes [css] to a temporary file in cache, suitable for Pandoc's --css flag.
+     * Returns null when [css] is null (Default template).
+     */
+    private fun writeCssToCache(css: String?): File? {
+        css ?: return null
+        val file = File(cacheDir, "template_style.css")
+        file.writeText(css)
+        return file
     }
 }

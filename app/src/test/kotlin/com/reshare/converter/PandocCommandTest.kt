@@ -379,4 +379,116 @@ class PandocCommandTest {
         val error = ConversionError.UnsupportedFormat("audio/mp3")
         assertTrue(error.message.contains("audio/mp3"))
     }
+
+    // CSS file tests
+
+    @Test
+    fun `builds command with css file adds standalone and css flags`() {
+        val inputFile = File("/tmp/input.md")
+        val outputFile = File("/tmp/output.html")
+        val cssFile = File("/tmp/style.css")
+
+        val command = PandocConverter.buildCommand(
+            pandocPath = pandocPath,
+            inputFormat = InputFormat.MARKDOWN,
+            outputFormat = OutputFormat.HTML,
+            inputFile = inputFile,
+            outputFile = outputFile,
+            cssFile = cssFile
+        )
+
+        assertEquals(
+            listOf(
+                pandocPath,
+                "-f", "markdown",
+                "-t", "html",
+                "--standalone",
+                "--css", "/tmp/style.css",
+                "/tmp/input.md",
+                "-o", "/tmp/output.html"
+            ),
+            command
+        )
+    }
+
+    @Test
+    fun `builds command without css file omits standalone and css flags`() {
+        val inputFile = File("/tmp/input.md")
+        val outputFile = File("/tmp/output.html")
+
+        val command = PandocConverter.buildCommand(
+            pandocPath = pandocPath,
+            inputFormat = InputFormat.MARKDOWN,
+            outputFormat = OutputFormat.HTML,
+            inputFile = inputFile,
+            outputFile = outputFile,
+            cssFile = null
+        )
+
+        assertEquals(
+            listOf(pandocPath, "-f", "markdown", "-t", "html", "/tmp/input.md", "-o", "/tmp/output.html"),
+            command
+        )
+    }
+
+    @Test
+    fun `builds command with css file and stdin mode`() {
+        val outputFile = File("/tmp/output.html")
+        val cssFile = File("/tmp/clean.css")
+
+        val command = PandocConverter.buildCommand(
+            pandocPath = pandocPath,
+            inputFormat = InputFormat.MARKDOWN,
+            outputFormat = OutputFormat.HTML,
+            inputFile = null,
+            outputFile = outputFile,
+            cssFile = cssFile
+        )
+
+        assertEquals(
+            listOf(
+                pandocPath,
+                "-f", "markdown",
+                "-t", "html",
+                "--standalone",
+                "--css", "/tmp/clean.css",
+                "-o", "/tmp/output.html"
+            ),
+            command
+        )
+    }
+
+    // Template tests
+
+    @Test
+    fun `Template DEFAULT has null css path`() {
+        assertNull(Template.DEFAULT.cssAssetPath)
+    }
+
+    @Test
+    fun `Template CLEAN has css path`() {
+        assertEquals("templates/clean/style.css", Template.CLEAN.cssAssetPath)
+    }
+
+    @Test
+    fun `Template ACADEMIC has css path`() {
+        assertEquals("templates/academic/style.css", Template.ACADEMIC.cssAssetPath)
+    }
+
+    @Test
+    fun `Template ALL contains three templates`() {
+        assertEquals(3, Template.ALL.size)
+    }
+
+    @Test
+    fun `Template fromId returns correct template`() {
+        assertEquals(Template.CLEAN, Template.fromId("clean"))
+        assertEquals(Template.ACADEMIC, Template.fromId("academic"))
+        assertEquals(Template.DEFAULT, Template.fromId("default"))
+    }
+
+    @Test
+    fun `Template fromId returns DEFAULT for unknown id`() {
+        assertEquals(Template.DEFAULT, Template.fromId("nonexistent"))
+    }
 }

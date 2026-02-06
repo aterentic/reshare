@@ -53,6 +53,9 @@
     <string name="history_clear_confirm">Delete all history records and saved files?</string>
     <string name="history_file_unavailable">File no longer available</string>
 
+    <!-- Templates -->
+    <string name="template_picker_title">Choose template</string>
+
     <!-- Usage -->
     <string name="usage_header">How to use</string>
     <string name="usage_instructions">1. Open a document in another app\n2. Tap Share\n3. Select ReShare\n4. Choose output format\n5. Share the converted file</string>

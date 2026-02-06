@@ -154,14 +154,15 @@ class PandocConverter(private val context: Context) {
      *
      * @param input The input data and format
      * @param outputFormat The desired output format
+     * @param cssFile Optional CSS file to apply via Pandoc's --css flag (requires --standalone)
      * @return Result containing the output file on success, or a ConversionError on failure
      */
-    fun convert(input: ConversionInput, outputFormat: OutputFormat): Result<File> {
+    fun convert(input: ConversionInput, outputFormat: OutputFormat, cssFile: File? = null): Result<File> {
         val outputFile = File(outputDir, "${UUID.randomUUID()}.${outputFormat.extension}")
 
         return when {
-            input.content != null -> convertFromBytes(input.content, input.inputFormat, outputFormat, outputFile)
-            input.contentUri != null -> convertFromUri(input.contentUri, input.inputFormat, outputFormat, outputFile)
+            input.content != null -> convertFromBytes(input.content, input.inputFormat, outputFormat, outputFile, cssFile)
+            input.contentUri != null -> convertFromUri(input.contentUri, input.inputFormat, outputFormat, outputFile, cssFile)
             else -> Result.failure(ConversionError.InputError("No input provided"))
         }
     }
@@ -170,7 +171,8 @@ class PandocConverter(private val context: Context) {
         content: ByteArray,
         inputFormat: InputFormat,
         outputFormat: OutputFormat,
-        outputFile: File
+        outputFile: File,
+        cssFile: File? = null
     ): Result<File> {
         if (content.size > MAX_FILE_SIZE) {
             return Result.failure(ConversionError.FileTooLarge(content.size.toLong()))
@@ -180,7 +182,8 @@ class PandocConverter(private val context: Context) {
             inputBytes = content,
             inputFormat = inputFormat,
             outputFormat = outputFormat,
-            outputFile = outputFile
+            outputFile = outputFile,
+            cssFile = cssFile
         )
     }
 
@@ -188,7 +191,8 @@ class PandocConverter(private val context: Context) {
         contentUri: Uri,
         inputFormat: InputFormat,
         outputFormat: OutputFormat,
-        outputFile: File
+        outputFile: File,
+        cssFile: File? = null
     ): Result<File> {
         val inputFile = copyUriToTempFile(contentUri)
             ?: return Result.failure(ConversionError.InputError("Failed to read input file"))
@@ -202,7 +206,8 @@ class PandocConverter(private val context: Context) {
                     inputBytes = null,
                     inputFormat = inputFormat,
                     outputFormat = outputFormat,
-                    outputFile = outputFile
+                    outputFile = outputFile,
+                    cssFile = cssFile
                 )
             }
         } finally {
@@ -229,7 +234,8 @@ class PandocConverter(private val context: Context) {
         inputBytes: ByteArray?,
         inputFormat: InputFormat,
         outputFormat: OutputFormat,
-        outputFile: File
+        outputFile: File,
+        cssFile: File? = null
     ): Result<File> {
         val nativeLibDir = context.applicationInfo.nativeLibraryDir
         val pandocPath = "$nativeLibDir/libpandoc.so"
@@ -238,7 +244,7 @@ class PandocConverter(private val context: Context) {
         val libDir = setupLibrarySymlinks(nativeLibDir)
             ?: return Result.failure(ConversionError.ProcessFailed(-1, "Failed to setup library symlinks"))
 
-        val command = buildCommand(pandocPath, inputFormat, outputFormat, inputFile, outputFile)
+        val command = buildCommand(pandocPath, inputFormat, outputFormat, inputFile, outputFile, cssFile)
 
         return try {
             val process = ProcessBuilder(command)
@@ -279,6 +285,8 @@ class PandocConverter(private val context: Context) {
     companion object {
         /**
          * Builds the Pandoc command line arguments.
+         * When [cssFile] is provided, adds --standalone and --css flags so Pandoc
+         * produces a full HTML document with the stylesheet linked.
          * Exposed for testing.
          */
         internal fun buildCommand(
@@ -286,7 +294,8 @@ class PandocConverter(private val context: Context) {
             inputFormat: InputFormat,
             outputFormat: OutputFormat,
             inputFile: File?,
-            outputFile: File
+            outputFile: File,
+            cssFile: File? = null
         ): List<String> {
             return buildList {
                 add(pandocPath)
@@ -294,6 +303,11 @@ class PandocConverter(private val context: Context) {
                 add(inputFormat.pandocFlag)
                 add("-t")
                 add(outputFormat.pandocFlag)
+                if (cssFile != null) {
+                    add("--standalone")
+                    add("--css")
+                    add(cssFile.absolutePath)
+                }
                 if (inputFile != null) {
                     add(inputFile.absolutePath)
                 }

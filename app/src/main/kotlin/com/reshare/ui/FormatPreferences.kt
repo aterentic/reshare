@@ -3,6 +3,7 @@ package com.reshare.ui
 import android.content.Context
 import com.reshare.converter.InputFormat
 import com.reshare.converter.OutputFormat
+import com.reshare.converter.Template
 import org.json.JSONObject
 
 /**
@@ -110,9 +111,25 @@ class FormatPreferences(context: Context) {
         return added
     }
 
+    /**
+     * Returns the last-used template for [outputFormat], or [Template.DEFAULT] if none stored.
+     */
+    fun getLastTemplate(outputFormat: OutputFormat): Template {
+        val id = prefs.getString("${KEY_TEMPLATE_PREFIX}${outputFormat.name}", null)
+        return if (id != null) Template.fromId(id) else Template.DEFAULT
+    }
+
+    /**
+     * Persists the last-used template for [outputFormat].
+     */
+    fun setLastTemplate(outputFormat: OutputFormat, template: Template) {
+        prefs.edit().putString("${KEY_TEMPLATE_PREFIX}${outputFormat.name}", template.id).apply()
+    }
+
     companion object {
         private const val PREFS_NAME = "format_prefs"
         private const val KEY_FORMAT_MATRIX = "format_matrix"
         private const val KEY_FAVORITES = "favorite_formats"
+        private const val KEY_TEMPLATE_PREFIX = "template_"
     }
 }
