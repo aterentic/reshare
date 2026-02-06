@@ -19,6 +19,7 @@ import com.reshare.converter.OutputFormat
 class FormatPickerDialog : BottomSheetDialogFragment() {
 
     private var inputFormat: InputFormat? = null
+    private var enabledFormats: Set<OutputFormat>? = null
     private var onFormatSelected: ((OutputFormat) -> Unit)? = null
     private var onCancelled: (() -> Unit)? = null
 
@@ -45,7 +46,7 @@ class FormatPickerDialog : BottomSheetDialogFragment() {
             onCancelled?.invoke()
         }
 
-        hideMatchingFormat(view)
+        hideDisabledFormats(view)
     }
 
     private fun setupFormatButton(button: ImageButton, format: OutputFormat) {
@@ -55,19 +56,35 @@ class FormatPickerDialog : BottomSheetDialogFragment() {
         }
     }
 
-    private fun hideMatchingFormat(view: View) {
+    private fun hideDisabledFormats(view: View) {
         val input = inputFormat ?: return
+        val enabled = enabledFormats ?: OutputFormat.entries.toSet()
 
-        val buttonToHide = when (input) {
-            InputFormat.PLAIN -> view.findViewById<ImageButton>(R.id.btnPlain)
-            InputFormat.MARKDOWN -> view.findViewById<ImageButton>(R.id.btnMarkdown)
-            InputFormat.HTML -> view.findViewById<ImageButton>(R.id.btnHtml)
-            InputFormat.DOCX -> view.findViewById<ImageButton>(R.id.btnDocx)
-            InputFormat.LATEX -> view.findViewById<ImageButton>(R.id.btnLatex)
+        val matchingOutput: OutputFormat? = when (input) {
+            InputFormat.PLAIN -> OutputFormat.PLAIN
+            InputFormat.MARKDOWN -> OutputFormat.MARKDOWN
+            InputFormat.HTML -> OutputFormat.HTML
+            InputFormat.DOCX -> OutputFormat.DOCX
+            InputFormat.LATEX -> OutputFormat.LATEX
             InputFormat.ORG, InputFormat.ODT, InputFormat.EPUB -> null
         }
 
-        buttonToHide?.visibility = View.GONE
+        val formatButtons = mapOf(
+            OutputFormat.PDF to view.findViewById<ImageButton>(R.id.btnPdf),
+            OutputFormat.DOCX to view.findViewById<ImageButton>(R.id.btnDocx),
+            OutputFormat.HTML to view.findViewById<ImageButton>(R.id.btnHtml),
+            OutputFormat.MARKDOWN to view.findViewById<ImageButton>(R.id.btnMarkdown),
+            OutputFormat.PLAIN to view.findViewById<ImageButton>(R.id.btnPlain),
+            OutputFormat.LATEX to view.findViewById<ImageButton>(R.id.btnLatex)
+        )
+
+        for ((format, button) in formatButtons) {
+            val isMatchingInput = format == matchingOutput
+            val isEnabled = format in enabled
+            if (isMatchingInput || !isEnabled) {
+                button.visibility = View.GONE
+            }
+        }
     }
 
     override fun onCancel(dialog: DialogInterface) {
@@ -78,11 +95,13 @@ class FormatPickerDialog : BottomSheetDialogFragment() {
     companion object {
         fun newInstance(
             inputFormat: InputFormat,
+            enabledFormats: Set<OutputFormat> = OutputFormat.entries.toSet(),
             onFormatSelected: (OutputFormat) -> Unit,
             onCancelled: () -> Unit
         ): FormatPickerDialog {
             return FormatPickerDialog().apply {
                 this.inputFormat = inputFormat
+                this.enabledFormats = enabledFormats
                 this.onFormatSelected = onFormatSelected
                 this.onCancelled = onCancelled
             }

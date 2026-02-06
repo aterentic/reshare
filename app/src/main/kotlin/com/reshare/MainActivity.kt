@@ -23,6 +23,7 @@ import com.reshare.share.ShareHandler
 import com.reshare.share.SharePreferences
 import com.reshare.share.StorageSaver
 import com.reshare.ui.FormatPickerDialog
+import com.reshare.ui.FormatPreferences
 import com.reshare.ui.PostConversionDialog
 import kotlinx.coroutines.launch
 import java.io.File
@@ -30,6 +31,7 @@ import java.io.File
 class MainActivity : AppCompatActivity() {
 
     private lateinit var formatDetector: FormatDetector
+    private lateinit var formatPreferences: FormatPreferences
     private lateinit var permissionManager: NotificationPermissionManager
     private lateinit var safLauncher: ActivityResultLauncher<Intent>
 
@@ -42,6 +44,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         formatDetector = FormatDetector(contentResolver)
+        formatPreferences = FormatPreferences(this)
 
         safLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             handleSafResult(result.resultCode, result.data)
@@ -146,8 +149,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showFormatPicker(input: PandocConverter.ConversionInput) {
+        val enabledFormats = formatPreferences.enabledOutputFormats(input.inputFormat)
+
+        if (enabledFormats.isEmpty()) {
+            Toast.makeText(this, R.string.no_formats_configured, Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
+
         FormatPickerDialog.newInstance(
             inputFormat = input.inputFormat,
+            enabledFormats = enabledFormats,
             onFormatSelected = { outputFormat ->
                 startConversion(input, outputFormat)
             },
@@ -203,8 +215,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showBatchFormatPicker(uris: List<Uri>, firstInputFormat: InputFormat) {
+        val enabledFormats = formatPreferences.enabledOutputFormats(firstInputFormat)
+
+        if (enabledFormats.isEmpty()) {
+            Toast.makeText(this, R.string.no_formats_configured, Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
+
         FormatPickerDialog.newInstance(
             inputFormat = firstInputFormat,
+            enabledFormats = enabledFormats,
             onFormatSelected = { outputFormat ->
                 startBatchConversion(uris, outputFormat)
             },

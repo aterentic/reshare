@@ -34,6 +34,10 @@
     <string name="settings_text_sharing_title">Share text formats as plain text</string>
     <string name="settings_text_sharing_summary">Share Markdown, HTML, LaTeX, and plain text output as text instead of files</string>
 
+    <!-- Format matrix -->
+    <string name="settings_format_matrix_header">Allowed conversions</string>
+    <string name="no_formats_configured">No output formats configured for this input type</string>
+
     <!-- Usage -->
     <string name="usage_header">How to use</string>
     <string name="usage_instructions">1. Open a document in another app\n2. Tap Share\n3. Select ReShare\n4. Choose output format\n5. Share the converted file</string>
