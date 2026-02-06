@@ -19,6 +19,13 @@
     <string name="batch_converting">Converting %1$d/%2$d</string>
     <string name="batch_partial_failure">%1$d of %2$d files failed to convert</string>
 
+    <!-- Post-conversion dialog -->
+    <string name="conversion_complete">Conversion complete</string>
+    <string name="share">Share</string>
+    <string name="save_to">Save to…</string>
+    <string name="save_failed">Failed to save file</string>
+    <string name="save_success">File saved</string>
+
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="settings_header">Settings</string>

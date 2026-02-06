@@ -5,6 +5,9 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.reshare.converter.ConversionError
@@ -18,7 +21,9 @@ import com.reshare.notification.NotificationPermissionManager
 import com.reshare.notification.ProgressNotifier
 import com.reshare.share.ShareHandler
 import com.reshare.share.SharePreferences
+import com.reshare.share.StorageSaver
 import com.reshare.ui.FormatPickerDialog
+import com.reshare.ui.PostConversionDialog
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -26,11 +31,21 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var formatDetector: FormatDetector
     private lateinit var permissionManager: NotificationPermissionManager
+    private lateinit var safLauncher: ActivityResultLauncher<Intent>
+
+    /** File pending SAF save (null when saving text). */
+    private var pendingSaveFile: File? = null
+    /** Text pending SAF save (null when saving a file). */
+    private var pendingSaveText: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         formatDetector = FormatDetector(contentResolver)
+
+        safLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            handleSafResult(result.resultCode, result.data)
+        }
 
         // Register permission manager before activity starts
         permissionManager = NotificationPermissionManager(this)
@@ -157,16 +172,7 @@ class MainActivity : AppCompatActivity() {
                 progressNotifier.hideProgress()
 
                 result.onSuccess { file ->
-                    val shareAsText = outputFormat.isTextBased &&
-                        SharePreferences(this@MainActivity).shareTextFormatsAsText
-                    if (shareAsText) {
-                        val text = file.readText(Charsets.UTF_8)
-                        file.delete()
-                        ShareHandler(this@MainActivity).shareText(text)
-                    } else {
-                        ShareHandler(this@MainActivity).shareFile(file, outputFormat)
-                    }
-                    finish()
+                    showPostConversionDialog(file, outputFormat)
                 }.onFailure { error ->
                     showError(error as? ConversionError ?: ConversionError.ProcessFailed(-1, error.message ?: "Unknown error"))
                 }
@@ -271,22 +277,90 @@ class MainActivity : AppCompatActivity() {
             }
 
             if (convertedFiles.size == 1) {
-                // Single successful file - use single share path
-                val shareAsText = outputFormat.isTextBased &&
-                    SharePreferences(this@MainActivity).shareTextFormatsAsText
-                if (shareAsText) {
-                    val text = convertedFiles.first().readText(Charsets.UTF_8)
-                    convertedFiles.first().delete()
-                    ShareHandler(this@MainActivity).shareText(text)
-                } else {
-                    ShareHandler(this@MainActivity).shareFile(convertedFiles.first(), outputFormat)
-                }
+                showPostConversionDialog(convertedFiles.first(), outputFormat)
             } else {
-                // Multiple files - always share as files (even text-based)
+                // Multiple files - always share as files (no SAF save for batch)
                 ShareHandler(this@MainActivity).shareFiles(convertedFiles, outputFormat.mimeType)
+                finish()
             }
-
-            finish()
         }
+    }
+
+    private fun showPostConversionDialog(file: File, outputFormat: OutputFormat) {
+        val shareAsText = outputFormat.isTextBased &&
+            SharePreferences(this).shareTextFormatsAsText
+
+        PostConversionDialog.show(
+            context = this,
+            onShare = {
+                if (shareAsText) {
+                    val text = file.readText(Charsets.UTF_8)
+                    file.delete()
+                    ShareHandler(this).shareText(text)
+                } else {
+                    ShareHandler(this).shareFile(file, outputFormat)
+                }
+                finish()
+            },
+            onSaveTo = {
+                val suggestedName = "converted.${outputFormat.extension}"
+                if (shareAsText) {
+                    pendingSaveText = file.readText(Charsets.UTF_8)
+                    pendingSaveFile = null
+                    file.delete()
+                } else {
+                    pendingSaveFile = file
+                    pendingSaveText = null
+                }
+                launchSafPicker(outputFormat.mimeType, suggestedName)
+            },
+            onCancelled = {
+                file.delete()
+                finish()
+            }
+        )
+    }
+
+    private fun launchSafPicker(mimeType: String, suggestedName: String) {
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = mimeType
+            putExtra(Intent.EXTRA_TITLE, suggestedName)
+        }
+        safLauncher.launch(intent)
+    }
+
+    private fun handleSafResult(resultCode: Int, data: Intent?) {
+        val uri = data?.data
+        if (resultCode != RESULT_OK || uri == null) {
+            pendingSaveFile?.delete()
+            pendingSaveFile = null
+            pendingSaveText = null
+            finish()
+            return
+        }
+
+        val saver = StorageSaver(contentResolver)
+        val saved = when {
+            pendingSaveFile != null -> {
+                val ok = saver.saveToUri(pendingSaveFile!!, uri)
+                pendingSaveFile!!.delete()
+                pendingSaveFile = null
+                ok
+            }
+            pendingSaveText != null -> {
+                val ok = saver.saveTextToUri(pendingSaveText!!, uri)
+                pendingSaveText = null
+                ok
+            }
+            else -> false
+        }
+
+        if (saved) {
+            Toast.makeText(this, R.string.save_success, Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, R.string.save_failed, Toast.LENGTH_SHORT).show()
+        }
+        finish()
     }
 }
