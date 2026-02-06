@@ -2,6 +2,7 @@ package com.reshare.share
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.core.content.FileProvider
 import com.reshare.converter.OutputFormat
 import java.io.File
@@ -28,6 +29,27 @@ class ShareHandler(private val context: Context) {
         }
 
         val chooser = Intent.createChooser(shareIntent, "Share converted document")
+        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(chooser)
+    }
+
+    /**
+     * Shares multiple converted files using Android's share sheet with ACTION_SEND_MULTIPLE.
+     *
+     * @param files The converted files to share
+     * @param mimeType The MIME type for the shared files
+     */
+    fun shareFiles(files: List<File>, mimeType: String) {
+        val authority = "${context.packageName}.fileprovider"
+        val uris = ArrayList<Uri>(files.map { FileProvider.getUriForFile(context, authority, it) })
+
+        val shareIntent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+            type = mimeType
+            putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+
+        val chooser = Intent.createChooser(shareIntent, "Share converted documents")
         chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(chooser)
     }

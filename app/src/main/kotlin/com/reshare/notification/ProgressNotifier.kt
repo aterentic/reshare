@@ -59,6 +59,20 @@ class ProgressNotifier(private val context: Context) {
         notificationManager.notify(PROGRESS_NOTIFICATION_ID, notification)
     }
 
+    fun showBatchProgress(current: Int, total: Int) {
+        val message = context.getString(R.string.batch_converting, current, total)
+        val notification = NotificationCompat.Builder(context, PROGRESS_CHANNEL_ID)
+            .setContentTitle("ReShare")
+            .setContentText(message)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setProgress(total, current, false)
+            .setOngoing(true)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .build()
+
+        notificationManager.notify(PROGRESS_NOTIFICATION_ID, notification)
+    }
+
     fun hideProgress() {
         notificationManager.cancel(PROGRESS_NOTIFICATION_ID)
     }

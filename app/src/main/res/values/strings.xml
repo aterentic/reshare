@@ -16,6 +16,8 @@
     <string name="format_plain_desc">Convert to plain text</string>
     <string name="format_latex_desc">Convert to LaTeX</string>
     <string name="cancel">Cancel</string>
+    <string name="batch_converting">Converting %1$d/%2$d</string>
+    <string name="batch_partial_failure">%1$d of %2$d files failed to convert</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
