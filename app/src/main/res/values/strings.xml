@@ -45,6 +45,14 @@
     <string name="settings_format_matrix_header">Allowed conversions</string>
     <string name="no_formats_configured">No output formats configured for this input type</string>
 
+    <!-- History -->
+    <string name="history_title">Conversion History</string>
+    <string name="history_button">History</string>
+    <string name="history_empty">No conversions yet</string>
+    <string name="history_clear">Clear History</string>
+    <string name="history_clear_confirm">Delete all history records and saved files?</string>
+    <string name="history_file_unavailable">File no longer available</string>
+
     <!-- Usage -->
     <string name="usage_header">How to use</string>
     <string name="usage_instructions">1. Open a document in another app\n2. Tap Share\n3. Select ReShare\n4. Choose output format\n5. Share the converted file</string>

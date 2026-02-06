@@ -114,6 +114,11 @@
             android:label="@string/text_preview_title" />
 
         <activity
+            android:name=".ui.HistoryActivity"
+            android:exported="false"
+            android:label="@string/history_title" />
+
+        <activity
             android:name=".ui.ErrorDetailsActivity"
             android:theme="@style/Theme.Transparent"
             android:exported="false"/>

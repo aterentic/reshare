@@ -22,6 +22,8 @@ import com.reshare.notification.ProgressNotifier
 import com.reshare.share.ShareHandler
 import com.reshare.share.SharePreferences
 import com.reshare.share.StorageSaver
+import com.reshare.history.ConversionHistoryDb
+import com.reshare.history.ConversionRecord
 import com.reshare.ui.FormatPickerDialog
 import com.reshare.ui.FormatPreferences
 import com.reshare.ui.PostConversionDialog
@@ -37,14 +39,20 @@ class MainActivity : AppCompatActivity() {
     private lateinit var safLauncher: ActivityResultLauncher<Intent>
     private lateinit var previewLauncher: ActivityResultLauncher<Intent>
 
+    private lateinit var historyDb: ConversionHistoryDb
+
     /** File pending SAF save. */
     private var pendingSaveFile: File? = null
+
+    /** Input name for the current conversion (used for history recording). */
+    private var pendingInputName: String = "Shared text"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         formatDetector = FormatDetector(contentResolver)
         formatPreferences = FormatPreferences(this)
+        historyDb = ConversionHistoryDb(this)
 
         safLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             handleSafResult(result.resultCode, result.data)
@@ -90,6 +98,8 @@ class MainActivity : AppCompatActivity() {
                     return
                 }
 
+                pendingInputName = "Shared text"
+
                 PandocConverter.ConversionInput(
                     content = bytes,
                     contentUri = null,
@@ -123,6 +133,8 @@ class MainActivity : AppCompatActivity() {
                         return
                     }
 
+                pendingInputName = getFileName(uri) ?: "Shared file"
+
                 PandocConverter.ConversionInput(
                     content = content,
                     contentUri = null,
@@ -145,6 +157,14 @@ class MainActivity : AppCompatActivity() {
                 cursor.getLong(0)
             } else 0L
         } ?: 0L
+    }
+
+    private fun getFileName(uri: Uri): String? {
+        return contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                cursor.getString(0)
+            } else null
+        }
     }
 
     private fun showError(error: ConversionError) {
@@ -188,6 +208,7 @@ class MainActivity : AppCompatActivity() {
                 progressNotifier.hideProgress()
 
                 result.onSuccess { file ->
+                    recordHistory(file, pendingInputName, input.inputFormat, outputFormat)
                     showPostConversionDialog(file, outputFormat)
                 }.onFailure { error ->
                     showError(error as? ConversionError ?: ConversionError.ProcessFailed(-1, error.message ?: "Unknown error"))
@@ -270,6 +291,8 @@ class MainActivity : AppCompatActivity() {
                     inputFormat = inputFormat
                 )
 
+                val inputName = getFileName(uri) ?: "Shared file"
+
                 try {
                     val result = if (outputFormat == OutputFormat.PDF) {
                         PdfConverter(this@MainActivity).convertToPdf(input)
@@ -278,6 +301,7 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     result.onSuccess { file ->
+                        recordHistory(file, inputName, inputFormat, outputFormat)
                         convertedFiles.add(file)
                     }.onFailure {
                         failures.add(index + 1)
@@ -350,6 +374,29 @@ class MainActivity : AppCompatActivity() {
             putExtra(Intent.EXTRA_TITLE, suggestedName)
         }
         safLauncher.launch(intent)
+    }
+
+    private fun recordHistory(
+        file: File,
+        inputName: String,
+        inputFormat: InputFormat,
+        outputFormat: OutputFormat
+    ) {
+        try {
+            val historyFile = ConversionHistoryDb.copyToHistory(this, file, outputFormat)
+            val record = ConversionRecord(
+                id = 0,
+                inputName = inputName,
+                inputFormat = inputFormat,
+                outputFormat = outputFormat,
+                timestamp = System.currentTimeMillis(),
+                outputPath = historyFile.absolutePath,
+                sizeBytes = historyFile.length()
+            )
+            historyDb.insert(record)
+        } catch (_: Exception) {
+            // History recording is best-effort; don't interrupt conversion flow
+        }
     }
 
     private fun handleSafResult(resultCode: Int, data: Intent?) {

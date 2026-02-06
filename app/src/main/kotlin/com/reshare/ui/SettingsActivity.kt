@@ -64,6 +64,7 @@ class SettingsActivity : AppCompatActivity() {
         setupNotificationToggle()
         setupTextSharingToggle()
         setupFormatMatrix()
+        setupHistoryButton()
     }
 
     override fun onResume() {
@@ -145,6 +146,12 @@ class SettingsActivity : AppCompatActivity() {
             putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
         }
         settingsLauncher.launch(intent)
+    }
+
+    private fun setupHistoryButton() {
+        findViewById<LinearLayout>(R.id.history_setting).setOnClickListener {
+            startActivity(Intent(this, HistoryActivity::class.java))
+        }
     }
 
     private fun setupFormatMatrix() {
