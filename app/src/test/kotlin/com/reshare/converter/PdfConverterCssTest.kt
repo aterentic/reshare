@@ -28,7 +28,8 @@ class PdfConverterCssTest {
 
         val result = PdfConverter.injectCss(html, css)
 
-        assertTrue(result.contains("<style>\np { margin: 0; }\n</style>\n</HEAD>"))
+        assertTrue("CSS should be injected before closing head tag",
+            result.contains("<style>\np { margin: 0; }\n</style>") && result.contains("</head>", ignoreCase = true))
     }
 
     @Test

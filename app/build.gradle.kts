@@ -1,5 +1,6 @@
 import java.net.HttpURLConnection
 import java.net.URI
+import java.util.Properties
 
 plugins {
     id("com.android.application")
@@ -7,7 +8,7 @@ plugins {
 }
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
-val keystoreProperties = java.util.Properties().apply {
+val keystoreProperties = Properties().apply {
     if (keystorePropertiesFile.exists()) {
         keystorePropertiesFile.inputStream().use { load(it) }
     }
@@ -218,14 +219,29 @@ fun extractFromDeb(debFile: File, sourcePath: String, targetFile: File, tempDir:
     extractDir.mkdirs()
 
     try {
-        // Extract .deb file using tar (bsdtar on macOS, handles ar format)
-        val debExtractProcess = ProcessBuilder("tar", "-xf", debFile.absolutePath)
-            .directory(extractDir)
-            .redirectErrorStream(true)
-            .start()
-        val debResult = debExtractProcess.waitFor()
-        if (debResult != 0) {
-            throw GradleException("Failed to extract .deb file: ${debExtractProcess.inputStream.bufferedReader().readText()}")
+        // Extract .deb (ar archive): use "ar" on Linux, fall back to "tar" (bsdtar on macOS)
+        val arAvailable = try {
+            ProcessBuilder("ar", "--version").start().waitFor() == 0
+        } catch (_: Exception) { false }
+
+        if (arAvailable) {
+            val arProcess = ProcessBuilder("ar", "x", debFile.absolutePath)
+                .directory(extractDir)
+                .redirectErrorStream(true)
+                .start()
+            val arResult = arProcess.waitFor()
+            if (arResult != 0) {
+                throw GradleException("Failed to extract .deb file with ar: ${arProcess.inputStream.bufferedReader().readText()}")
+            }
+        } else {
+            val debExtractProcess = ProcessBuilder("tar", "-xf", debFile.absolutePath)
+                .directory(extractDir)
+                .redirectErrorStream(true)
+                .start()
+            val debResult = debExtractProcess.waitFor()
+            if (debResult != 0) {
+                throw GradleException("Failed to extract .deb file with tar: ${debExtractProcess.inputStream.bufferedReader().readText()}")
+            }
         }
 
         // Find the data archive (could be data.tar.xz, data.tar.gz, or data.tar.zst)
@@ -233,20 +249,17 @@ fun extractFromDeb(debFile: File, sourcePath: String, targetFile: File, tempDir:
             ?: throw GradleException("No data.tar.* found in ${debFile.name}")
 
         // Extract the specific file from the data archive
-        val tarProcess = ProcessBuilder("tar", "-xf", dataArchive.absolutePath, sourcePath)
+        // Paths may have "./" prefix (GNU tar) or not (bsdtar), try both
+        val tarProcess = ProcessBuilder("tar", "-xf", dataArchive.absolutePath, "./$sourcePath", sourcePath)
             .directory(extractDir)
             .redirectErrorStream(true)
             .start()
-        val tarResult = tarProcess.waitFor()
-        if (tarResult != 0) {
-            throw GradleException("Failed to extract from tar: ${tarProcess.inputStream.bufferedReader().readText()}")
-        }
+        tarProcess.waitFor()
 
-        // Copy the extracted file to the target location
-        val extractedFile = extractDir.resolve(sourcePath)
-        if (!extractedFile.exists()) {
-            throw GradleException("Extracted file not found: $sourcePath")
-        }
+        // Copy the extracted file to the target location (check both path variants)
+        val extractedFile = listOf(extractDir.resolve(sourcePath), extractDir.resolve("./$sourcePath"))
+            .firstOrNull { it.exists() }
+            ?: throw GradleException("Extracted file not found: $sourcePath")
 
         targetFile.parentFile?.mkdirs()
         extractedFile.copyTo(targetFile, overwrite = true)

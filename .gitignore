@@ -2,8 +2,7 @@
 .gradle/
 build/
 local.properties
-gradle.properties
-gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.jar
 
 # IDE
 .idea/

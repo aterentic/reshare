@@ -1,0 +1,8 @@
+Initial release.
+
+- Convert documents between formats offline using Pandoc
+- Share integration: receive files from any app via Android's share menu
+- Output formats: PDF, DOCX, HTML, Markdown, Plain text, Org mode, EPUB, LaTeX
+- Conversion history with re-share support
+- Custom template support
+- Text preview for converted output
