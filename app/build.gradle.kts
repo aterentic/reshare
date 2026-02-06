@@ -14,6 +14,7 @@ val keystoreProperties = java.util.Properties().apply {
 }
 
 val versionFromEnv: String = System.getenv("VERSION_NAME") ?: "1.0"
+val versionCodeFromEnv: Int = System.getenv("VERSION_CODE")?.toIntOrNull() ?: 1
 
 android {
     namespace = "com.reshare"
@@ -23,7 +24,7 @@ android {
         applicationId = "com.reshare"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
+        versionCode = versionCodeFromEnv
         versionName = versionFromEnv
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -42,7 +43,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
