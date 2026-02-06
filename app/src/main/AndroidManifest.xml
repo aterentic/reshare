@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <permission
+        android:name="com.reshare.permission.CONVERT"
+        android:protectionLevel="normal"
+        android:label="@string/permission_convert_label"
+        android:description="@string/permission_convert_description" />
+
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
@@ -122,6 +128,17 @@
             android:name=".ui.ErrorDetailsActivity"
             android:theme="@style/Theme.Transparent"
             android:exported="false"/>
+
+        <activity
+            android:name=".ConvertActivity"
+            android:exported="true"
+            android:theme="@style/Theme.NoDisplay"
+            android:permission="com.reshare.permission.CONVERT">
+            <intent-filter>
+                <action android:name="com.reshare.ACTION_CONVERT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
 
         <provider
             android:name="androidx.core.content.FileProvider"

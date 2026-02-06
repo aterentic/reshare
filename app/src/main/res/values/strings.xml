@@ -56,6 +56,10 @@
     <!-- Templates -->
     <string name="template_picker_title">Choose template</string>
 
+    <!-- Automation API -->
+    <string name="permission_convert_label">Convert documents via ReShare</string>
+    <string name="permission_convert_description">Allows the app to trigger document conversions through ReShare</string>
+
     <!-- Usage -->
     <string name="usage_header">How to use</string>
     <string name="usage_instructions">1. Open a document in another app\n2. Tap Share\n3. Select ReShare\n4. Choose output format\n5. Share the converted file</string>
