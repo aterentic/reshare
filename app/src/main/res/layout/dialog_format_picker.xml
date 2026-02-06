@@ -15,87 +15,13 @@
         android:layout_marginBottom="16dp"/>
 
     <GridLayout
+        android:id="@+id/formatGrid"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:columnCount="3"
-        android:rowCount="2"
         android:alignmentMode="alignMargins"
         android:useDefaultMargins="true"
-        android:layout_marginBottom="8dp">
-
-        <ImageButton
-            android:id="@+id/btnPdf"
-            android:layout_width="0dp"
-            android:layout_height="72dp"
-            android:layout_columnWeight="1"
-            android:layout_margin="4dp"
-            android:src="@drawable/ic_format_pdf"
-            android:scaleType="fitCenter"
-            android:padding="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/format_pdf_desc"/>
-
-        <ImageButton
-            android:id="@+id/btnDocx"
-            android:layout_width="0dp"
-            android:layout_height="72dp"
-            android:layout_columnWeight="1"
-            android:layout_margin="4dp"
-            android:src="@drawable/ic_format_docx"
-            android:scaleType="fitCenter"
-            android:padding="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/format_docx_desc"/>
-
-        <ImageButton
-            android:id="@+id/btnHtml"
-            android:layout_width="0dp"
-            android:layout_height="72dp"
-            android:layout_columnWeight="1"
-            android:layout_margin="4dp"
-            android:src="@drawable/ic_format_html"
-            android:scaleType="fitCenter"
-            android:padding="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/format_html_desc"/>
-
-        <ImageButton
-            android:id="@+id/btnMarkdown"
-            android:layout_width="0dp"
-            android:layout_height="72dp"
-            android:layout_columnWeight="1"
-            android:layout_margin="4dp"
-            android:src="@drawable/ic_format_markdown"
-            android:scaleType="fitCenter"
-            android:padding="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/format_markdown_desc"/>
-
-        <ImageButton
-            android:id="@+id/btnPlain"
-            android:layout_width="0dp"
-            android:layout_height="72dp"
-            android:layout_columnWeight="1"
-            android:layout_margin="4dp"
-            android:src="@drawable/ic_format_plain"
-            android:scaleType="fitCenter"
-            android:padding="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/format_plain_desc"/>
-
-        <ImageButton
-            android:id="@+id/btnLatex"
-            android:layout_width="0dp"
-            android:layout_height="72dp"
-            android:layout_columnWeight="1"
-            android:layout_margin="4dp"
-            android:src="@drawable/ic_format_latex"
-            android:scaleType="fitCenter"
-            android:padding="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/format_latex_desc"/>
-
-    </GridLayout>
+        android:layout_marginBottom="8dp"/>
 
     <Button
         android:id="@+id/btnCancel"

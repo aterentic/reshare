@@ -1,12 +1,16 @@
 package com.reshare.ui
 
 import android.content.DialogInterface
+import android.content.res.ColorStateList
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.GridLayout
 import android.widget.ImageButton
+import android.widget.Toast
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.reshare.R
 import com.reshare.converter.InputFormat
@@ -15,6 +19,7 @@ import com.reshare.converter.OutputFormat
 /**
  * Bottom sheet dialog for selecting output format.
  * Shows available formats, hiding the one matching the input format.
+ * Favorites (toggled via long-press) appear first in the grid.
  */
 class FormatPickerDialog : BottomSheetDialogFragment() {
 
@@ -34,30 +39,69 @@ class FormatPickerDialog : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupFormatButton(view.findViewById(R.id.btnPdf), OutputFormat.PDF)
-        setupFormatButton(view.findViewById(R.id.btnDocx), OutputFormat.DOCX)
-        setupFormatButton(view.findViewById(R.id.btnHtml), OutputFormat.HTML)
-        setupFormatButton(view.findViewById(R.id.btnMarkdown), OutputFormat.MARKDOWN)
-        setupFormatButton(view.findViewById(R.id.btnPlain), OutputFormat.PLAIN)
-        setupFormatButton(view.findViewById(R.id.btnLatex), OutputFormat.LATEX)
-
         view.findViewById<Button>(R.id.btnCancel).setOnClickListener {
             dismiss()
             onCancelled?.invoke()
         }
 
-        hideDisabledFormats(view)
+        populateGrid(view)
     }
 
-    private fun setupFormatButton(button: ImageButton, format: OutputFormat) {
-        button.setOnClickListener {
-            dismiss()
-            onFormatSelected?.invoke(format)
+    private fun populateGrid(view: View) {
+        val grid = view.findViewById<GridLayout>(R.id.formatGrid)
+        grid.removeAllViews()
+
+        val context = requireContext()
+        val formatPreferences = FormatPreferences(context)
+        val favorites = formatPreferences.getFavorites()
+        val visibleFormats = visibleFormats()
+
+        val sorted = visibleFormats.sortedWith(compareByDescending<OutputFormat> { it in favorites }
+            .thenBy { OutputFormat.entries.indexOf(it) })
+
+        for (format in sorted) {
+            val button = ImageButton(context).apply {
+                setImageResource(formatDrawable(format))
+                contentDescription = getString(formatContentDescription(format))
+                scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+                setPadding(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8))
+                background = context.getDrawable(resolveSelectableBackground())
+            }
+
+            if (format in favorites) {
+                applyFavoriteIndicator(button)
+            }
+
+            button.setOnClickListener {
+                dismiss()
+                onFormatSelected?.invoke(format)
+            }
+
+            button.setOnLongClickListener {
+                val added = formatPreferences.toggleFavorite(format)
+                val label = formatDisplayName(format)
+                val message = if (added) {
+                    getString(R.string.favorite_added, label)
+                } else {
+                    getString(R.string.favorite_removed, label)
+                }
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                populateGrid(view)
+                true
+            }
+
+            val params = GridLayout.LayoutParams().apply {
+                width = 0
+                height = dpToPx(72)
+                columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
+                setMargins(dpToPx(4), dpToPx(4), dpToPx(4), dpToPx(4))
+            }
+            grid.addView(button, params)
         }
     }
 
-    private fun hideDisabledFormats(view: View) {
-        val input = inputFormat ?: return
+    private fun visibleFormats(): List<OutputFormat> {
+        val input = inputFormat ?: return OutputFormat.entries
         val enabled = enabledFormats ?: OutputFormat.entries.toSet()
 
         val matchingOutput: OutputFormat? = when (input) {
@@ -69,22 +113,34 @@ class FormatPickerDialog : BottomSheetDialogFragment() {
             InputFormat.ORG, InputFormat.ODT, InputFormat.EPUB -> null
         }
 
-        val formatButtons = mapOf(
-            OutputFormat.PDF to view.findViewById<ImageButton>(R.id.btnPdf),
-            OutputFormat.DOCX to view.findViewById<ImageButton>(R.id.btnDocx),
-            OutputFormat.HTML to view.findViewById<ImageButton>(R.id.btnHtml),
-            OutputFormat.MARKDOWN to view.findViewById<ImageButton>(R.id.btnMarkdown),
-            OutputFormat.PLAIN to view.findViewById<ImageButton>(R.id.btnPlain),
-            OutputFormat.LATEX to view.findViewById<ImageButton>(R.id.btnLatex)
-        )
-
-        for ((format, button) in formatButtons) {
-            val isMatchingInput = format == matchingOutput
-            val isEnabled = format in enabled
-            if (isMatchingInput || !isEnabled) {
-                button.visibility = View.GONE
-            }
+        return OutputFormat.entries.filter { format ->
+            format != matchingOutput && format in enabled
         }
+    }
+
+    private fun applyFavoriteIndicator(button: ImageButton) {
+        val accentColor = resolveAccentColor()
+        button.backgroundTintList = ColorStateList.valueOf(accentColor and 0x00FFFFFF or 0x20000000)
+    }
+
+    private fun resolveAccentColor(): Int {
+        val typedValue = TypedValue()
+        requireContext().theme.resolveAttribute(android.R.attr.colorAccent, typedValue, true)
+        return typedValue.data
+    }
+
+    private fun resolveSelectableBackground(): Int {
+        val typedValue = TypedValue()
+        requireContext().theme.resolveAttribute(
+            android.R.attr.selectableItemBackgroundBorderless, typedValue, true
+        )
+        return typedValue.resourceId
+    }
+
+    private fun dpToPx(dp: Int): Int {
+        return TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP, dp.toFloat(), resources.displayMetrics
+        ).toInt()
     }
 
     override fun onCancel(dialog: DialogInterface) {
@@ -93,6 +149,7 @@ class FormatPickerDialog : BottomSheetDialogFragment() {
     }
 
     companion object {
+
         fun newInstance(
             inputFormat: InputFormat,
             enabledFormats: Set<OutputFormat> = OutputFormat.entries.toSet(),
@@ -105,6 +162,33 @@ class FormatPickerDialog : BottomSheetDialogFragment() {
                 this.onFormatSelected = onFormatSelected
                 this.onCancelled = onCancelled
             }
+        }
+
+        private fun formatDrawable(format: OutputFormat): Int = when (format) {
+            OutputFormat.PDF -> R.drawable.ic_format_pdf
+            OutputFormat.DOCX -> R.drawable.ic_format_docx
+            OutputFormat.HTML -> R.drawable.ic_format_html
+            OutputFormat.MARKDOWN -> R.drawable.ic_format_markdown
+            OutputFormat.PLAIN -> R.drawable.ic_format_plain
+            OutputFormat.LATEX -> R.drawable.ic_format_latex
+        }
+
+        private fun formatContentDescription(format: OutputFormat): Int = when (format) {
+            OutputFormat.PDF -> R.string.format_pdf_desc
+            OutputFormat.DOCX -> R.string.format_docx_desc
+            OutputFormat.HTML -> R.string.format_html_desc
+            OutputFormat.MARKDOWN -> R.string.format_markdown_desc
+            OutputFormat.PLAIN -> R.string.format_plain_desc
+            OutputFormat.LATEX -> R.string.format_latex_desc
+        }
+
+        private fun formatDisplayName(format: OutputFormat): String = when (format) {
+            OutputFormat.PDF -> "PDF"
+            OutputFormat.DOCX -> "DOCX"
+            OutputFormat.HTML -> "HTML"
+            OutputFormat.MARKDOWN -> "Markdown"
+            OutputFormat.PLAIN -> "Plain Text"
+            OutputFormat.LATEX -> "LaTeX"
         }
     }
 }

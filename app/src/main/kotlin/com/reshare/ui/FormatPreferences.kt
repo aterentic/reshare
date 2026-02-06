@@ -83,8 +83,36 @@ class FormatPreferences(context: Context) {
         return InputFormat.entries.associateWith { all }.toMutableMap()
     }
 
+    /**
+     * Returns the set of output formats marked as favorites.
+     */
+    fun getFavorites(): Set<OutputFormat> {
+        val names = prefs.getStringSet(KEY_FAVORITES, emptySet()) ?: emptySet()
+        return names.mapNotNull { name ->
+            OutputFormat.entries.find { it.name == name }
+        }.toSet()
+    }
+
+    /**
+     * Toggles the favorite status of [format].
+     * Returns true if the format is now a favorite, false if removed.
+     */
+    fun toggleFavorite(format: OutputFormat): Boolean {
+        val names = prefs.getStringSet(KEY_FAVORITES, emptySet())?.toMutableSet() ?: mutableSetOf()
+        val added = if (format.name in names) {
+            names.remove(format.name)
+            false
+        } else {
+            names.add(format.name)
+            true
+        }
+        prefs.edit().putStringSet(KEY_FAVORITES, names).apply()
+        return added
+    }
+
     companion object {
         private const val PREFS_NAME = "format_prefs"
         private const val KEY_FORMAT_MATRIX = "format_matrix"
+        private const val KEY_FAVORITES = "favorite_formats"
     }
 }
