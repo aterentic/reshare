@@ -13,6 +13,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.reshare.R
+import com.reshare.share.SharePreferences
 
 /**
  * Main launcher activity providing settings and usage instructions.
@@ -21,6 +22,9 @@ class SettingsActivity : AppCompatActivity() {
 
     private lateinit var notificationSwitch: Switch
     private lateinit var notificationSetting: LinearLayout
+    private lateinit var textSharingSwitch: Switch
+    private lateinit var textSharingSetting: LinearLayout
+    private lateinit var sharePreferences: SharePreferences
 
     private val settingsLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -43,8 +47,12 @@ class SettingsActivity : AppCompatActivity() {
 
         notificationSwitch = findViewById(R.id.switch_notifications)
         notificationSetting = findViewById(R.id.notification_setting)
+        textSharingSwitch = findViewById(R.id.switch_text_sharing)
+        textSharingSetting = findViewById(R.id.text_sharing_setting)
+        sharePreferences = SharePreferences(this)
 
         setupNotificationToggle()
+        setupTextSharingToggle()
     }
 
     override fun onResume() {
@@ -64,6 +72,24 @@ class SettingsActivity : AppCompatActivity() {
         notificationSwitch.setOnClickListener {
             toggleNotifications()
         }
+    }
+
+    private fun setupTextSharingToggle() {
+        textSharingSwitch.isChecked = sharePreferences.shareTextFormatsAsText
+
+        textSharingSetting.setOnClickListener {
+            toggleTextSharing()
+        }
+
+        textSharingSwitch.setOnClickListener {
+            toggleTextSharing()
+        }
+    }
+
+    private fun toggleTextSharing() {
+        val newValue = !sharePreferences.shareTextFormatsAsText
+        sharePreferences.shareTextFormatsAsText = newValue
+        textSharingSwitch.isChecked = newValue
     }
 
     private fun toggleNotifications() {

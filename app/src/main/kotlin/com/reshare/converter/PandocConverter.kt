@@ -29,13 +29,13 @@ enum class InputFormat(val pandocFlag: String, val mimeTypes: List<String>) {
  * Output formats supported by Pandoc.
  * Note: PDF is handled separately via HTML -> WebView -> PrintManager.
  */
-enum class OutputFormat(val pandocFlag: String, val extension: String, val mimeType: String) {
-    PDF("html", "pdf", "application/pdf"),
-    DOCX("docx", "docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
-    HTML("html", "html", "text/html"),
-    MARKDOWN("markdown", "md", "text/markdown"),
-    PLAIN("plain", "txt", "text/plain"),
-    LATEX("latex", "tex", "application/x-latex")
+enum class OutputFormat(val pandocFlag: String, val extension: String, val mimeType: String, val isTextBased: Boolean) {
+    PDF("html", "pdf", "application/pdf", false),
+    DOCX("docx", "docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", false),
+    HTML("html", "html", "text/html", true),
+    MARKDOWN("markdown", "md", "text/markdown", true),
+    PLAIN("plain", "txt", "text/plain", true),
+    LATEX("latex", "tex", "application/x-latex", true)
 }
 
 /**

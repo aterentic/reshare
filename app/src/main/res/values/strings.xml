@@ -22,6 +22,8 @@
     <string name="settings_header">Settings</string>
     <string name="settings_notifications_title">Show notifications</string>
     <string name="settings_notifications_summary">Display progress and error notifications during conversion</string>
+    <string name="settings_text_sharing_title">Share text formats as plain text</string>
+    <string name="settings_text_sharing_summary">Share Markdown, HTML, LaTeX, and plain text output as text instead of files</string>
 
     <!-- Usage -->
     <string name="usage_header">How to use</string>

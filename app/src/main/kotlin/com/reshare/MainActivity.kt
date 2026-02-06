@@ -16,6 +16,7 @@ import com.reshare.converter.PdfConverter
 import com.reshare.notification.NotificationPermissionManager
 import com.reshare.notification.ProgressNotifier
 import com.reshare.share.ShareHandler
+import com.reshare.share.SharePreferences
 import com.reshare.ui.FormatPickerDialog
 import kotlinx.coroutines.launch
 
@@ -155,8 +156,9 @@ class MainActivity : AppCompatActivity() {
                 progressNotifier.hideProgress()
 
                 result.onSuccess { file ->
-                    if (outputFormat == OutputFormat.PLAIN) {
-                        // Share plain text content directly instead of as file
+                    val shareAsText = outputFormat.isTextBased &&
+                        SharePreferences(this@MainActivity).shareTextFormatsAsText
+                    if (shareAsText) {
                         val text = file.readText(Charsets.UTF_8)
                         file.delete()
                         ShareHandler(this@MainActivity).shareText(text)
