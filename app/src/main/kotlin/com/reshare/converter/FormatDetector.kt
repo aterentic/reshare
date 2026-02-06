@@ -28,7 +28,8 @@ class FormatDetector(private val contentResolver: ContentResolver) {
         "htm" to InputFormat.HTML,
         "docx" to InputFormat.DOCX,
         "odt" to InputFormat.ODT,
-        "epub" to InputFormat.EPUB
+        "epub" to InputFormat.EPUB,
+        "tex" to InputFormat.LATEX
     )
 
     /**
@@ -119,6 +120,13 @@ class FormatDetector(private val contentResolver: ContentResolver) {
             return InputFormat.HTML
         }
 
+        // LaTeX detection
+        if (text.contains("\\documentclass") ||
+            text.contains("\\begin{document}")
+        ) {
+            return InputFormat.LATEX
+        }
+
         // Org mode detection (headlines, metadata, links)
         if (text.contains(Regex("^\\*+\\s", RegexOption.MULTILINE)) ||  // * Headline
             text.contains(Regex("^#\\+[A-Z]+:", RegexOption.MULTILINE)) ||  // #+TITLE:
@@ -203,7 +211,8 @@ class FormatDetector(private val contentResolver: ContentResolver) {
             "htm" to InputFormat.HTML,
             "docx" to InputFormat.DOCX,
             "odt" to InputFormat.ODT,
-            "epub" to InputFormat.EPUB
+            "epub" to InputFormat.EPUB,
+            "tex" to InputFormat.LATEX
         )
 
         /**
@@ -236,6 +245,13 @@ class FormatDetector(private val contentResolver: ContentResolver) {
                 text.contains("<html", ignoreCase = true)
             ) {
                 return InputFormat.HTML
+            }
+
+            // LaTeX detection
+            if (text.contains("\\documentclass") ||
+                text.contains("\\begin{document}")
+            ) {
+                return InputFormat.LATEX
             }
 
             // Org mode detection (headlines, metadata, links)

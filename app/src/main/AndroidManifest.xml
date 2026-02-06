@@ -55,6 +55,20 @@
                 <data android:mimeType="application/epub+zip" />
             </intent-filter>
 
+            <!-- Share intent filter for latex -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/x-latex" />
+            </intent-filter>
+
+            <!-- Share intent filter for tex -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/x-tex" />
+            </intent-filter>
+
         </activity>
 
         <activity

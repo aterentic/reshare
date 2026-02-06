@@ -61,6 +61,11 @@ class FormatDetectorTest {
     }
 
     @Test
+    fun `detectFromExtension returns LATEX for tex files`() {
+        assertEquals(InputFormat.LATEX, FormatDetector.detectFromExtension("document.tex"))
+    }
+
+    @Test
     fun `detectFromExtension is case insensitive`() {
         assertEquals(InputFormat.MARKDOWN, FormatDetector.detectFromExtension("README.MD"))
         assertEquals(InputFormat.HTML, FormatDetector.detectFromExtension("Page.HTML"))
@@ -196,6 +201,26 @@ class FormatDetectorTest {
         assertNull(FormatDetector.sniffContent(content))
     }
 
+    // LaTeX content sniffing tests
+
+    @Test
+    fun `sniffContent detects LaTeX with documentclass`() {
+        val content = "\\documentclass{article}\n\\begin{document}\nHello\n\\end{document}".toByteArray()
+        assertEquals(InputFormat.LATEX, FormatDetector.sniffContent(content))
+    }
+
+    @Test
+    fun `sniffContent detects LaTeX with begin document`() {
+        val content = "% A comment\n\\begin{document}\nContent here\n\\end{document}".toByteArray()
+        assertEquals(InputFormat.LATEX, FormatDetector.sniffContent(content))
+    }
+
+    @Test
+    fun `sniffContent detects LaTeX with documentclass and options`() {
+        val content = "\\documentclass[12pt,a4paper]{report}\n\\usepackage{amsmath}\n\\begin{document}\nText\n\\end{document}".toByteArray()
+        assertEquals(InputFormat.LATEX, FormatDetector.sniffContent(content))
+    }
+
     // ZIP-based format sniffing tests
 
     @Test
@@ -292,6 +317,16 @@ class FormatDetectorTest {
     }
 
     @Test
+    fun `fromMimeType returns LATEX for application x-latex`() {
+        assertEquals(InputFormat.LATEX, InputFormat.fromMimeType("application/x-latex"))
+    }
+
+    @Test
+    fun `fromMimeType returns LATEX for application x-tex`() {
+        assertEquals(InputFormat.LATEX, InputFormat.fromMimeType("application/x-tex"))
+    }
+
+    @Test
     fun `fromMimeType returns null for unknown mime type`() {
         assertNull(InputFormat.fromMimeType("application/octet-stream"))
         assertNull(InputFormat.fromMimeType("image/png"))
@@ -312,7 +347,7 @@ class FormatDetectorTest {
 
     @Test
     fun `extension map contains all expected extensions`() {
-        val expected = setOf("txt", "md", "markdown", "org", "html", "htm", "docx", "odt", "epub")
+        val expected = setOf("txt", "md", "markdown", "org", "html", "htm", "docx", "odt", "epub", "tex")
         assertEquals(expected, FormatDetector.EXTENSION_MAP.keys)
     }
 

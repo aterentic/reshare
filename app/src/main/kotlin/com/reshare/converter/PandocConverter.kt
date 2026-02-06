@@ -16,7 +16,8 @@ enum class InputFormat(val pandocFlag: String, val mimeTypes: List<String>) {
     HTML("html", listOf("text/html")),
     DOCX("docx", listOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document")),
     ODT("odt", listOf("application/vnd.oasis.opendocument.text")),
-    EPUB("epub", listOf("application/epub+zip"));
+    EPUB("epub", listOf("application/epub+zip")),
+    LATEX("latex", listOf("application/x-latex", "application/x-tex"));
 
     companion object {
         fun fromMimeType(mimeType: String): InputFormat? =
@@ -33,7 +34,8 @@ enum class OutputFormat(val pandocFlag: String, val extension: String, val mimeT
     DOCX("docx", "docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
     HTML("html", "html", "text/html"),
     MARKDOWN("markdown", "md", "text/markdown"),
-    PLAIN("plain", "txt", "text/plain")
+    PLAIN("plain", "txt", "text/plain"),
+    LATEX("latex", "tex", "application/x-latex")
 }
 
 /**

@@ -8,11 +8,13 @@
     <string name="format_html">HTML</string>
     <string name="format_markdown">Markdown</string>
     <string name="format_plain">Plain Text</string>
+    <string name="format_latex">LaTeX</string>
     <string name="format_pdf_desc">Convert to PDF</string>
     <string name="format_docx_desc">Convert to Word document</string>
     <string name="format_html_desc">Convert to HTML</string>
     <string name="format_markdown_desc">Convert to Markdown</string>
     <string name="format_plain_desc">Convert to plain text</string>
+    <string name="format_latex_desc">Convert to LaTeX</string>
     <string name="cancel">Cancel</string>
 
     <!-- Settings -->

@@ -216,6 +216,119 @@ class TextConversionTest {
         assertThat(output.length()).isGreaterThan(0L)
     }
 
+    // latex -> html
+    @Test
+    fun convertsLatexToHtml() {
+        val input = loadAsset("input/simple.tex")
+        val result = converter.convert(
+            PandocConverter.ConversionInput(
+                content = input,
+                contentUri = null,
+                inputFormat = InputFormat.LATEX
+            ),
+            OutputFormat.HTML
+        )
+
+        assertThat(result.isSuccess).isTrue()
+        val output = result.getOrThrow()
+        assertThat(output.exists()).isTrue()
+        val content = output.readText()
+        assertThat(content).contains("Hello World")
+        assertThat(content).contains("<strong>")
+        assertThat(content).contains("<em>")
+        assertThat(content).contains("<li>")
+    }
+
+    // latex -> markdown
+    @Test
+    fun convertsLatexToMarkdown() {
+        val input = loadAsset("input/simple.tex")
+        val result = converter.convert(
+            PandocConverter.ConversionInput(
+                content = input,
+                contentUri = null,
+                inputFormat = InputFormat.LATEX
+            ),
+            OutputFormat.MARKDOWN
+        )
+
+        assertThat(result.isSuccess).isTrue()
+        val output = result.getOrThrow()
+        assertThat(output.exists()).isTrue()
+        val content = output.readText()
+        assertThat(content).contains("Hello World")
+        assertThat(content).contains("bold")
+        assertThat(content).contains("italic")
+    }
+
+    // latex -> plain
+    @Test
+    fun convertsLatexToPlain() {
+        val input = loadAsset("input/simple.tex")
+        val result = converter.convert(
+            PandocConverter.ConversionInput(
+                content = input,
+                contentUri = null,
+                inputFormat = InputFormat.LATEX
+            ),
+            OutputFormat.PLAIN
+        )
+
+        assertThat(result.isSuccess).isTrue()
+        val output = result.getOrThrow()
+        assertThat(output.exists()).isTrue()
+        val content = output.readText()
+        assertThat(content).contains("Hello World")
+        assertThat(content).contains("bold")
+        // Should not contain LaTeX commands
+        assertThat(content).doesNotContain("\\textbf")
+        assertThat(content).doesNotContain("\\begin")
+    }
+
+    // md -> latex
+    @Test
+    fun convertsMarkdownToLatex() {
+        val input = loadAsset("input/simple.md")
+        val result = converter.convert(
+            PandocConverter.ConversionInput(
+                content = input,
+                contentUri = null,
+                inputFormat = InputFormat.MARKDOWN
+            ),
+            OutputFormat.LATEX
+        )
+
+        assertThat(result.isSuccess).isTrue()
+        val output = result.getOrThrow()
+        assertThat(output.exists()).isTrue()
+        val content = output.readText()
+        assertThat(content).contains("Hello World")
+        assertThat(content).contains("\\textbf")
+        assertThat(content).contains("\\emph")
+    }
+
+    // html -> latex
+    @Test
+    fun convertsHtmlToLatex() {
+        val input = loadAsset("input/simple.html")
+        val result = converter.convert(
+            PandocConverter.ConversionInput(
+                content = input,
+                contentUri = null,
+                inputFormat = InputFormat.HTML
+            ),
+            OutputFormat.LATEX
+        )
+
+        assertThat(result.isSuccess).isTrue()
+        val output = result.getOrThrow()
+        assertThat(output.exists()).isTrue()
+        val content = output.readText()
+        assertThat(content).contains("Hello World")
+        assertThat(content).contains("\\textbf")
+        assertThat(content).contains("\\emph")
+    }
+
     private fun loadAsset(path: String): ByteArray {
         return context.assets.open(path).use { it.readBytes() }
     }

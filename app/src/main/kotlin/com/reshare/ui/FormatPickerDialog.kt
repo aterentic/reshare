@@ -38,6 +38,7 @@ class FormatPickerDialog : BottomSheetDialogFragment() {
         setupFormatButton(view.findViewById(R.id.btnHtml), OutputFormat.HTML)
         setupFormatButton(view.findViewById(R.id.btnMarkdown), OutputFormat.MARKDOWN)
         setupFormatButton(view.findViewById(R.id.btnPlain), OutputFormat.PLAIN)
+        setupFormatButton(view.findViewById(R.id.btnLatex), OutputFormat.LATEX)
 
         view.findViewById<Button>(R.id.btnCancel).setOnClickListener {
             dismiss()
@@ -62,6 +63,7 @@ class FormatPickerDialog : BottomSheetDialogFragment() {
             InputFormat.MARKDOWN -> view.findViewById<ImageButton>(R.id.btnMarkdown)
             InputFormat.HTML -> view.findViewById<ImageButton>(R.id.btnHtml)
             InputFormat.DOCX -> view.findViewById<ImageButton>(R.id.btnDocx)
+            InputFormat.LATEX -> view.findViewById<ImageButton>(R.id.btnLatex)
             InputFormat.ORG, InputFormat.ODT, InputFormat.EPUB -> null
         }
 

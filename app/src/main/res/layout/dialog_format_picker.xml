@@ -83,6 +83,18 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/format_plain_desc"/>
 
+        <ImageButton
+            android:id="@+id/btnLatex"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:src="@drawable/ic_format_latex"
+            android:scaleType="fitCenter"
+            android:padding="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/format_latex_desc"/>
+
     </GridLayout>
 
     <Button

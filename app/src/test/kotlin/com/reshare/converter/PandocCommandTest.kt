@@ -148,6 +148,44 @@ class PandocCommandTest {
     }
 
     @Test
+    fun `builds correct command for latex to html`() {
+        val inputFile = File("/tmp/document.tex")
+        val outputFile = File("/tmp/output.html")
+
+        val command = PandocConverter.buildCommand(
+            pandocPath = pandocPath,
+            inputFormat = InputFormat.LATEX,
+            outputFormat = OutputFormat.HTML,
+            inputFile = inputFile,
+            outputFile = outputFile
+        )
+
+        assertEquals(
+            listOf(pandocPath, "-f", "latex", "-t", "html", "/tmp/document.tex", "-o", "/tmp/output.html"),
+            command
+        )
+    }
+
+    @Test
+    fun `builds correct command for markdown to latex`() {
+        val inputFile = File("/tmp/input.md")
+        val outputFile = File("/tmp/output.tex")
+
+        val command = PandocConverter.buildCommand(
+            pandocPath = pandocPath,
+            inputFormat = InputFormat.MARKDOWN,
+            outputFormat = OutputFormat.LATEX,
+            inputFile = inputFile,
+            outputFile = outputFile
+        )
+
+        assertEquals(
+            listOf(pandocPath, "-f", "markdown", "-t", "latex", "/tmp/input.md", "-o", "/tmp/output.tex"),
+            command
+        )
+    }
+
+    @Test
     fun `handles paths with spaces`() {
         val inputFile = File("/tmp/my documents/input file.md")
         val outputFile = File("/tmp/output folder/result.html")
@@ -257,6 +295,18 @@ class PandocCommandTest {
     }
 
     @Test
+    fun `InputFormat fromMimeType returns correct format for latex`() {
+        val format = InputFormat.fromMimeType("application/x-latex")
+        assertEquals(InputFormat.LATEX, format)
+    }
+
+    @Test
+    fun `InputFormat fromMimeType returns correct format for tex`() {
+        val format = InputFormat.fromMimeType("application/x-tex")
+        assertEquals(InputFormat.LATEX, format)
+    }
+
+    @Test
     fun `InputFormat fromMimeType returns null for unknown mime type`() {
         val format = InputFormat.fromMimeType("application/octet-stream")
         assertEquals(null, format)
@@ -293,6 +343,13 @@ class PandocCommandTest {
         assertEquals("plain", OutputFormat.PLAIN.pandocFlag)
         assertEquals("txt", OutputFormat.PLAIN.extension)
         assertEquals("text/plain", OutputFormat.PLAIN.mimeType)
+    }
+
+    @Test
+    fun `OutputFormat LATEX has correct properties`() {
+        assertEquals("latex", OutputFormat.LATEX.pandocFlag)
+        assertEquals("tex", OutputFormat.LATEX.extension)
+        assertEquals("application/x-latex", OutputFormat.LATEX.mimeType)
     }
 
     // ConversionError tests
