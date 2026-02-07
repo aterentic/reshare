@@ -81,7 +81,12 @@ class FormatPreferences(context: Context) {
 
     private fun defaultMatrix(): MutableMap<InputFormat, Set<OutputFormat>> {
         val all = OutputFormat.entries.toSet()
-        return InputFormat.entries.associateWith { all }.toMutableMap()
+        return InputFormat.entries.associateWith { input ->
+            when (input) {
+                InputFormat.PDF -> all - OutputFormat.PDF
+                else -> all
+            }
+        }.toMutableMap()
     }
 
     /**

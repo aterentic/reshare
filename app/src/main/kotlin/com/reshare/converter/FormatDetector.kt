@@ -29,7 +29,8 @@ class FormatDetector(private val contentResolver: ContentResolver) {
         "docx" to InputFormat.DOCX,
         "odt" to InputFormat.ODT,
         "epub" to InputFormat.EPUB,
-        "tex" to InputFormat.LATEX
+        "tex" to InputFormat.LATEX,
+        "pdf" to InputFormat.PDF
     )
 
     /**
@@ -103,6 +104,17 @@ class FormatDetector(private val contentResolver: ContentResolver) {
 
     private fun sniffContent(content: ByteArray): InputFormat? {
         if (content.isEmpty()) return null
+
+        // PDF detection - %PDF- magic bytes
+        if (content.size >= 5 &&
+            content[0] == 0x25.toByte() && // %
+            content[1] == 0x50.toByte() && // P
+            content[2] == 0x44.toByte() && // D
+            content[3] == 0x46.toByte() && // F
+            content[4] == 0x2D.toByte()    // -
+        ) {
+            return InputFormat.PDF
+        }
 
         // DOCX/EPUB/ODT are ZIP files - check for PK signature
         if (content.size >= 4 &&
@@ -212,7 +224,8 @@ class FormatDetector(private val contentResolver: ContentResolver) {
             "docx" to InputFormat.DOCX,
             "odt" to InputFormat.ODT,
             "epub" to InputFormat.EPUB,
-            "tex" to InputFormat.LATEX
+            "tex" to InputFormat.LATEX,
+            "pdf" to InputFormat.PDF
         )
 
         /**
@@ -230,6 +243,17 @@ class FormatDetector(private val contentResolver: ContentResolver) {
          */
         fun sniffContent(content: ByteArray): InputFormat? {
             if (content.isEmpty()) return null
+
+            // PDF detection - %PDF- magic bytes
+            if (content.size >= 5 &&
+                content[0] == 0x25.toByte() && // %
+                content[1] == 0x50.toByte() && // P
+                content[2] == 0x44.toByte() && // D
+                content[3] == 0x46.toByte() && // F
+                content[4] == 0x2D.toByte()    // -
+            ) {
+                return InputFormat.PDF
+            }
 
             // DOCX/EPUB/ODT are ZIP files - check for PK signature
             if (content.size >= 4 &&

@@ -73,8 +73,12 @@ class FormatDetectorTest {
     }
 
     @Test
+    fun `detectFromExtension returns PDF for pdf files`() {
+        assertEquals(InputFormat.PDF, FormatDetector.detectFromExtension("document.pdf"))
+    }
+
+    @Test
     fun `detectFromExtension returns null for unknown extensions`() {
-        assertNull(FormatDetector.detectFromExtension("file.pdf"))
         assertNull(FormatDetector.detectFromExtension("file.xyz"))
         assertNull(FormatDetector.detectFromExtension("file.doc"))
     }
@@ -221,6 +225,26 @@ class FormatDetectorTest {
         assertEquals(InputFormat.LATEX, FormatDetector.sniffContent(content))
     }
 
+    // PDF content sniffing tests
+
+    @Test
+    fun `sniffContent detects PDF with magic bytes`() {
+        val content = "%PDF-1.4 fake pdf content".toByteArray()
+        assertEquals(InputFormat.PDF, FormatDetector.sniffContent(content))
+    }
+
+    @Test
+    fun `sniffContent detects PDF version 1_7`() {
+        val content = "%PDF-1.7\n1 0 obj".toByteArray()
+        assertEquals(InputFormat.PDF, FormatDetector.sniffContent(content))
+    }
+
+    @Test
+    fun `sniffContent detects PDF version 2_0`() {
+        val content = "%PDF-2.0\n1 0 obj".toByteArray()
+        assertEquals(InputFormat.PDF, FormatDetector.sniffContent(content))
+    }
+
     // ZIP-based format sniffing tests
 
     @Test
@@ -327,10 +351,14 @@ class FormatDetectorTest {
     }
 
     @Test
+    fun `fromMimeType returns PDF for application pdf`() {
+        assertEquals(InputFormat.PDF, InputFormat.fromMimeType("application/pdf"))
+    }
+
+    @Test
     fun `fromMimeType returns null for unknown mime type`() {
         assertNull(InputFormat.fromMimeType("application/octet-stream"))
         assertNull(InputFormat.fromMimeType("image/png"))
-        assertNull(InputFormat.fromMimeType("application/pdf"))
     }
 
     @Test
@@ -347,7 +375,7 @@ class FormatDetectorTest {
 
     @Test
     fun `extension map contains all expected extensions`() {
-        val expected = setOf("txt", "md", "markdown", "org", "html", "htm", "docx", "odt", "epub", "tex")
+        val expected = setOf("txt", "md", "markdown", "org", "html", "htm", "docx", "odt", "epub", "tex", "pdf")
         assertEquals(expected, FormatDetector.EXTENSION_MAP.keys)
     }
 

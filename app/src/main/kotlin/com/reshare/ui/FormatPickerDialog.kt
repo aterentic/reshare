@@ -110,6 +110,7 @@ class FormatPickerDialog : BottomSheetDialogFragment() {
             InputFormat.HTML -> OutputFormat.HTML
             InputFormat.DOCX -> OutputFormat.DOCX
             InputFormat.LATEX -> OutputFormat.LATEX
+            InputFormat.PDF -> OutputFormat.PDF
             InputFormat.ORG, InputFormat.ODT, InputFormat.EPUB -> null
         }
 

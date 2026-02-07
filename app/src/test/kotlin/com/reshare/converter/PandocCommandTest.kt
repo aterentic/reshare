@@ -307,6 +307,12 @@ class PandocCommandTest {
     }
 
     @Test
+    fun `InputFormat fromMimeType returns correct format for pdf`() {
+        val format = InputFormat.fromMimeType("application/pdf")
+        assertEquals(InputFormat.PDF, format)
+    }
+
+    @Test
     fun `InputFormat fromMimeType returns null for unknown mime type`() {
         val format = InputFormat.fromMimeType("application/octet-stream")
         assertEquals(null, format)

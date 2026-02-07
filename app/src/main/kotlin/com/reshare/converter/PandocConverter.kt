@@ -20,7 +20,8 @@ enum class InputFormat(val pandocFlag: String, val mimeTypes: List<String>, val 
     DOCX("docx", listOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document"), requiresFileInput = true),
     ODT("odt", listOf("application/vnd.oasis.opendocument.text"), requiresFileInput = true),
     EPUB("epub", listOf("application/epub+zip"), requiresFileInput = true),
-    LATEX("latex", listOf("application/x-latex", "application/x-tex"));
+    LATEX("latex", listOf("application/x-latex", "application/x-tex")),
+    PDF("html", listOf("application/pdf"), requiresFileInput = true);
 
     companion object {
         fun fromMimeType(mimeType: String): InputFormat? =
