@@ -25,4 +25,5 @@ release.keystore
 
 # Project-specific
 .docs/
+.plan/
 CLAUDE.md
