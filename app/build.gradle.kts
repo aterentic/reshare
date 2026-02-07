@@ -102,12 +102,14 @@ dependencies {
     androidTestImplementation("com.google.truth:truth:1.1.5")
 }
 
-// Pandoc binary download configuration
-val pandocBaseUrl = "https://packages.termux.dev/apt/termux-main/pool/main"
-val pandocArchitectures = mapOf(
+// Termux binary download configuration
+val termuxBaseUrl = "https://packages.termux.dev/apt/termux-main/pool/main"
+val termuxArchitectures = mapOf(
     "aarch64" to "arm64-v8a",
     "x86_64" to "x86_64"
 )
+
+// Pandoc packages
 val pandocPackages = mapOf(
     "pandoc" to "p/pandoc/pandoc_3.7.0.2-2",
     "zlib" to "z/zlib/zlib_1.3.1-1",
@@ -116,6 +118,38 @@ val pandocPackages = mapOf(
     "lua54" to "l/lua54/lua54_5.4.8-6",
     "libffi" to "libf/libffi/libffi_3.4.7-1"
 )
+
+// Poppler packages (pdftohtml + dependencies not already in pandocPackages)
+val popplerPackages = mapOf(
+    "poppler" to "p/poppler/poppler_24.05.0-5",
+    "fontconfig" to "f/fontconfig/fontconfig_2.17.1-1",
+    "freetype" to "f/freetype/freetype_2.14.1",
+    "libpng" to "libp/libpng/libpng_1.6.54",
+    "libjpeg-turbo" to "libj/libjpeg-turbo/libjpeg-turbo_3.1.3",
+    "libtiff" to "libt/libtiff/libtiff_4.7.1",
+    "littlecms" to "l/littlecms/littlecms_2.18",
+    "openjpeg" to "o/openjpeg/openjpeg_2.5.4",
+    "libcurl" to "libc/libcurl/libcurl_8.18.0-1",
+    "openssl" to "o/openssl/openssl_1%3A3.6.1",
+    "libnghttp2" to "libn/libnghttp2/libnghttp2_1.68.0-1",
+    "libnghttp3" to "libn/libnghttp3/libnghttp3_1.15.0",
+    "libngtcp2" to "libn/libngtcp2/libngtcp2_1.20.0",
+    "libssh2" to "libs/libssh2/libssh2_1.11.1-1",
+    "libnspr" to "libn/libnspr/libnspr_4.38.2",
+    "libnss" to "libn/libnss/libnss_3.120",
+    "gpgme" to "g/gpgme/gpgme_2.0.1",
+    "gpgmepp" to "g/gpgmepp/gpgmepp_2.0.0",
+    "libassuan" to "liba/libassuan/libassuan_3.0.2-1",
+    "libgpg-error" to "libg/libgpg-error/libgpg-error_1.58",
+    "libexpat" to "libe/libexpat/libexpat_2.7.4",
+    "brotli" to "b/brotli/brotli_1.2.0",
+    "libbz2" to "libb/libbz2/libbz2_1.0.8-8",
+    "liblzma" to "libl/liblzma/liblzma_5.8.2",
+    "zstd" to "z/zstd/zstd_1.5.7-1",
+    "libc++" to "libc/libc++/libc++_29"
+)
+
+val allPackages = pandocPackages + popplerPackages
 
 // Files to extract from each package and their target names
 // Format: "path/in/tar" to "target_name"
@@ -128,9 +162,64 @@ val pandocFileMapping = mapOf(
     "libffi" to mapOf("data/data/com.termux/files/usr/lib/libffi.so" to "libffi.so")
 )
 
+val popplerFileMapping = mapOf(
+    "poppler" to mapOf(
+        "data/data/com.termux/files/usr/bin/pdftohtml" to "libpdftohtml.so",
+        "data/data/com.termux/files/usr/lib/libpoppler.so" to "libpoppler.so"
+    ),
+    "fontconfig" to mapOf("data/data/com.termux/files/usr/lib/libfontconfig.so" to "libfontconfig.so"),
+    "freetype" to mapOf("data/data/com.termux/files/usr/lib/libfreetype.so" to "libfreetype.so"),
+    "libpng" to mapOf("data/data/com.termux/files/usr/lib/libpng16.so" to "libpng16.so"),
+    "libjpeg-turbo" to mapOf("data/data/com.termux/files/usr/lib/libjpeg.so.8.3.2" to "libjpeg.so"),
+    "libtiff" to mapOf("data/data/com.termux/files/usr/lib/libtiff.so" to "libtiff.so"),
+    "littlecms" to mapOf("data/data/com.termux/files/usr/lib/liblcms2.so" to "liblcms2.so"),
+    "openjpeg" to mapOf("data/data/com.termux/files/usr/lib/libopenjp2.so" to "libopenjp2.so"),
+    "libcurl" to mapOf("data/data/com.termux/files/usr/lib/libcurl.so" to "libcurl.so"),
+    "openssl" to mapOf(
+        "data/data/com.termux/files/usr/lib/libcrypto.so.3" to "libcrypto.so",
+        "data/data/com.termux/files/usr/lib/libssl.so.3" to "libssl.so"
+    ),
+    "libnghttp2" to mapOf("data/data/com.termux/files/usr/lib/libnghttp2.so" to "libnghttp2.so"),
+    "libnghttp3" to mapOf("data/data/com.termux/files/usr/lib/libnghttp3.so" to "libnghttp3.so"),
+    "libngtcp2" to mapOf(
+        "data/data/com.termux/files/usr/lib/libngtcp2.so" to "libngtcp2.so",
+        "data/data/com.termux/files/usr/lib/libngtcp2_crypto_ossl.so" to "libngtcp2_crypto_ossl.so"
+    ),
+    "libssh2" to mapOf("data/data/com.termux/files/usr/lib/libssh2.so" to "libssh2.so"),
+    "libnspr" to mapOf(
+        "data/data/com.termux/files/usr/lib/libnspr4.so" to "libnspr4.so",
+        "data/data/com.termux/files/usr/lib/libplc4.so" to "libplc4.so",
+        "data/data/com.termux/files/usr/lib/libplds4.so" to "libplds4.so"
+    ),
+    "libnss" to mapOf(
+        "data/data/com.termux/files/usr/lib/libnss3.so" to "libnss3.so",
+        "data/data/com.termux/files/usr/lib/libnssutil3.so" to "libnssutil3.so",
+        "data/data/com.termux/files/usr/lib/libsmime3.so" to "libsmime3.so",
+        "data/data/com.termux/files/usr/lib/libnssckbi.so" to "libnssckbi.so",
+        "data/data/com.termux/files/usr/lib/libsoftokn3.so" to "libsoftokn3.so",
+        "data/data/com.termux/files/usr/lib/libfreebl3.so" to "libfreebl3.so",
+        "data/data/com.termux/files/usr/lib/libfreeblpriv3.so" to "libfreeblpriv3.so"
+    ),
+    "gpgme" to mapOf("data/data/com.termux/files/usr/lib/libgpgme.so" to "libgpgme.so"),
+    "gpgmepp" to mapOf("data/data/com.termux/files/usr/lib/libgpgmepp.so" to "libgpgmepp.so"),
+    "libassuan" to mapOf("data/data/com.termux/files/usr/lib/libassuan.so" to "libassuan.so"),
+    "libgpg-error" to mapOf("data/data/com.termux/files/usr/lib/libgpg-error.so" to "libgpg-error.so"),
+    "libexpat" to mapOf("data/data/com.termux/files/usr/lib/libexpat.so.1.11.2" to "libexpat.so"),
+    "brotli" to mapOf(
+        "data/data/com.termux/files/usr/lib/libbrotlicommon.so" to "libbrotlicommon.so",
+        "data/data/com.termux/files/usr/lib/libbrotlidec.so" to "libbrotlidec.so"
+    ),
+    "libbz2" to mapOf("data/data/com.termux/files/usr/lib/libbz2.so.1.0.8" to "libbz2.so"),
+    "liblzma" to mapOf("data/data/com.termux/files/usr/lib/liblzma.so.5.8.2" to "liblzma.so"),
+    "zstd" to mapOf("data/data/com.termux/files/usr/lib/libzstd.so.1.5.7" to "libzstd.so"),
+    "libc++" to mapOf("data/data/com.termux/files/usr/lib/libc++_shared.so" to "libc++_shared.so")
+)
+
+val allFileMapping = pandocFileMapping + popplerFileMapping
+
 tasks.register("downloadPandoc") {
     group = "pandoc"
-    description = "Downloads and extracts Pandoc binaries from Termux packages"
+    description = "Downloads and extracts Pandoc and Poppler binaries from Termux packages"
 
     val jniLibsDir = file("src/main/jniLibs")
 
@@ -138,15 +227,15 @@ tasks.register("downloadPandoc") {
 
     doLast {
         // Check if all files already exist
-        val allFilesExist = pandocArchitectures.values.all { jniDir ->
+        val allFilesExist = termuxArchitectures.values.all { jniDir ->
             val archDir = jniLibsDir.resolve(jniDir)
-            pandocFileMapping.values.flatMap { it.values }.all { targetName ->
+            allFileMapping.values.flatMap { it.values }.all { targetName ->
                 archDir.resolve(targetName).exists()
             }
         }
 
         if (allFilesExist) {
-            println("All Pandoc binaries already exist, skipping download")
+            println("All binaries already exist, skipping download")
             return@doLast
         }
 
@@ -154,14 +243,14 @@ tasks.register("downloadPandoc") {
         tempDir.mkdirs()
 
         try {
-            for ((termuxArch, jniDir) in pandocArchitectures) {
+            for ((termuxArch, jniDir) in termuxArchitectures) {
                 val archOutputDir = jniLibsDir.resolve(jniDir)
                 archOutputDir.mkdirs()
 
                 println("Processing architecture: $termuxArch -> $jniDir")
 
-                for ((packageName, packagePath) in pandocPackages) {
-                    val debUrl = "$pandocBaseUrl/$packagePath" + "_$termuxArch.deb"
+                for ((packageName, packagePath) in allPackages) {
+                    val debUrl = "$termuxBaseUrl/$packagePath" + "_$termuxArch.deb"
                     val debFile = tempDir.resolve("${packageName}_$termuxArch.deb")
 
                     // Download .deb file
@@ -172,7 +261,7 @@ tasks.register("downloadPandoc") {
                     }
 
                     // Extract files from .deb using ar and tar commands
-                    val fileMapping = pandocFileMapping[packageName] ?: continue
+                    val fileMapping = allFileMapping[packageName] ?: continue
                     for ((sourcePath, targetName) in fileMapping) {
                         val targetFile = archOutputDir.resolve(targetName)
                         if (targetFile.exists()) {
@@ -192,7 +281,7 @@ tasks.register("downloadPandoc") {
             tempDir.deleteRecursively()
         }
 
-        println("Pandoc binaries downloaded successfully to $jniLibsDir")
+        println("Binaries downloaded successfully to $jniLibsDir")
     }
 }
 

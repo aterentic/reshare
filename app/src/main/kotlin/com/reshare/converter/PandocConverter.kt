@@ -130,8 +130,17 @@ class PandocConverter(private val context: Context) {
         return try {
             // Map of expected soname -> actual file in nativeLibDir
             val symlinkMap = mapOf(
+                // Pandoc deps
                 "libz.so.1" to "libz.so",
-                "liblua5.4.so.5.4" to "liblua5.4.so"
+                "liblua5.4.so.5.4" to "liblua5.4.so",
+                // Poppler deps
+                "libjpeg.so.8" to "libjpeg.so",
+                "libexpat.so.1" to "libexpat.so",
+                "libbz2.so.1.0" to "libbz2.so",
+                "liblzma.so.5" to "liblzma.so",
+                "libzstd.so.1" to "libzstd.so",
+                "libcrypto.so.3" to "libcrypto.so",
+                "libssl.so.3" to "libssl.so"
             )
 
             for ((linkName, targetName) in symlinkMap) {
