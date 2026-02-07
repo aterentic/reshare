@@ -171,12 +171,58 @@ class PandocConverter(private val context: Context) {
      * @return Result containing the output file on success, or a ConversionError on failure
      */
     fun convert(input: ConversionInput, outputFormat: OutputFormat, cssFile: File? = null): Result<File> {
+        if (input.inputFormat == InputFormat.PDF) {
+            return convertPdfInput(input, outputFormat, cssFile)
+        }
+
         val outputFile = File(outputDir, "${UUID.randomUUID()}.${outputFormat.extension}")
 
         return when {
             input.content != null -> convertFromBytes(input.content, input.inputFormat, outputFormat, outputFile, cssFile)
             input.contentUri != null -> convertFromUri(input.contentUri, input.inputFormat, outputFormat, outputFile, cssFile)
             else -> Result.failure(ConversionError.InputError("No input provided"))
+        }
+    }
+
+    /**
+     * Converts PDF input through a two-stage pipeline: PDF → pdftohtml → HTML → Pandoc → target.
+     */
+    private fun convertPdfInput(input: ConversionInput, outputFormat: OutputFormat, cssFile: File?): Result<File> {
+        val nativeLibDir = context.applicationInfo.nativeLibraryDir
+        val libDir = setupLibrarySymlinks(nativeLibDir)
+            ?: return Result.failure(ConversionError.ProcessFailed(-1, "Failed to setup library symlinks"))
+
+        // Get PDF into a temp file
+        val pdfFile = when {
+            input.contentUri != null -> copyUriToTempFile(input.contentUri)
+                ?: return Result.failure(ConversionError.InputError("Failed to read PDF file"))
+            input.content != null -> {
+                if (input.content.size > MAX_FILE_SIZE) {
+                    return Result.failure(ConversionError.FileTooLarge(input.content.size.toLong()))
+                }
+                File(context.cacheDir, "pdf_${UUID.randomUUID()}.pdf").also { it.writeBytes(input.content) }
+            }
+            else -> return Result.failure(ConversionError.InputError("No input provided"))
+        }
+
+        return try {
+            if (pdfFile.length() > MAX_FILE_SIZE) {
+                return Result.failure(ConversionError.FileTooLarge(pdfFile.length()))
+            }
+
+            // Stage 1: PDF → HTML via pdftohtml
+            val htmlResult = PdfInputConverter.convertToHtml(pdfFile, nativeLibDir, libDir)
+            val html = htmlResult.getOrElse { return Result.failure(it) }
+
+            // Stage 2: HTML → target format via Pandoc
+            val htmlInput = ConversionInput(
+                content = html.toByteArray(Charsets.UTF_8),
+                contentUri = null,
+                inputFormat = InputFormat.HTML
+            )
+            convert(htmlInput, outputFormat, cssFile)
+        } finally {
+            pdfFile.delete()
         }
     }
 
