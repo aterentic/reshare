@@ -1,7 +1,7 @@
 package com.reshare.ui
 
 import android.content.Context
-import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.reshare.R
 import com.reshare.converter.OutputFormat
 import com.reshare.converter.Template
@@ -43,7 +43,7 @@ object TemplatePickerDialog {
         val checkedIndex = templates.indexOfFirst { it.id == lastUsed.id }.coerceAtLeast(0)
         var selectedIndex = checkedIndex
 
-        AlertDialog.Builder(context)
+        MaterialAlertDialogBuilder(context)
             .setTitle(R.string.template_picker_title)
             .setSingleChoiceItems(names, checkedIndex) { _, which ->
                 selectedIndex = which

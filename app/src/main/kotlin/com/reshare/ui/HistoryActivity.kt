@@ -9,7 +9,7 @@ import android.widget.Button
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.appcompat.app.AppCompatActivity
 import com.reshare.R
 import com.reshare.history.ConversionHistoryDb
@@ -75,7 +75,7 @@ class HistoryActivity : AppCompatActivity() {
     }
 
     private fun confirmClear() {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setMessage(R.string.history_clear_confirm)
             .setPositiveButton(R.string.history_clear) { _, _ ->
                 db.deleteAll()

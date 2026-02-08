@@ -1,6 +1,6 @@
 package com.reshare.ui
 
-import android.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import android.content.Context
 import com.reshare.R
 
@@ -15,7 +15,7 @@ object PostConversionDialog {
         onSaveTo: () -> Unit,
         onCancelled: () -> Unit
     ) {
-        AlertDialog.Builder(context)
+        MaterialAlertDialogBuilder(context)
             .setTitle(R.string.conversion_complete)
             .setPositiveButton(R.string.share) { dialog, _ ->
                 dialog.dismiss()
