@@ -11,7 +11,7 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.widget.CheckBox
 import android.widget.LinearLayout
-import android.widget.Switch
+import com.google.android.material.materialswitch.MaterialSwitch
 import android.widget.TableLayout
 import android.widget.TableRow
 import android.widget.TextView
@@ -28,9 +28,9 @@ import com.reshare.share.SharePreferences
  */
 class SettingsActivity : AppCompatActivity() {
 
-    private lateinit var notificationSwitch: Switch
+    private lateinit var notificationSwitch: MaterialSwitch
     private lateinit var notificationSetting: LinearLayout
-    private lateinit var textSharingSwitch: Switch
+    private lateinit var textSharingSwitch: MaterialSwitch
     private lateinit var textSharingSetting: LinearLayout
     private lateinit var sharePreferences: SharePreferences
     private lateinit var formatPreferences: FormatPreferences
