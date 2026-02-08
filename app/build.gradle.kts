@@ -4,7 +4,6 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
 }
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -19,12 +18,12 @@ val versionCodeFromEnv: Int = System.getenv("VERSION_CODE")?.toIntOrNull() ?: 1
 
 android {
     namespace = "com.reshare"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.reshare"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 36
         versionCode = versionCodeFromEnv
         versionName = versionFromEnv
 
@@ -61,10 +60,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     sourceSets {
         getByName("main") {
             java.srcDirs("src/main/kotlin")
@@ -83,6 +78,12 @@ android {
         jniLibs {
             useLegacyPackaging = true
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
 
