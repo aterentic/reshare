@@ -40,14 +40,14 @@ sealed class FetchResult {
 }
 
 /**
- * Fetches content from URLs with special handling for Instagram.
- * Twitter/X URLs use the generic fetcher (oEmbed API is defunct).
+ * Fetches content from URLs with special handling for Twitter/X and Instagram.
  * Uses java.net.HttpURLConnection — no external dependencies.
  */
 object UrlContentFetcher {
 
     private const val TIMEOUT_MS = 15_000
     private const val MAX_DOWNLOAD_BYTES = 10_000_000L
+    private const val SYNDICATION_URL = "https://cdn.syndication.twimg.com/tweet-result"
 
     /**
      * Fetches content from [url], dispatching to platform-specific handlers.
@@ -55,6 +55,7 @@ object UrlContentFetcher {
      */
     fun fetch(url: String): FetchResult = try {
         when {
+            UrlDetector.isTwitterUrl(url) -> fetchTwitter(url)
             UrlDetector.isInstagramUrl(url) -> fetchInstagram(url)
             else -> fetchGeneric(url)
         }
@@ -62,6 +63,55 @@ object UrlContentFetcher {
         FetchResult.Error("Network error: ${e.message}")
     } catch (e: Exception) {
         FetchResult.Error("Failed to fetch: ${e.message}")
+    }
+
+    /**
+     * Extracts the numeric tweet ID from a Twitter/X URL path like /user/status/123456.
+     */
+    internal fun extractTweetId(url: String): String? {
+        val path = try { URI(url).path } catch (_: Exception) { return null }
+        val segments = path.trimEnd('/').split('/')
+        val statusIdx = segments.indexOf("status")
+        if (statusIdx < 0 || statusIdx + 1 >= segments.size) return null
+        val id = segments[statusIdx + 1]
+        return if (id.all { it.isDigit() } && id.isNotEmpty()) id else null
+    }
+
+    private fun fetchTwitter(url: String): FetchResult {
+        val tweetId = extractTweetId(url)
+            ?: return FetchResult.Error("Could not extract tweet ID from URL")
+
+        // Try syndication JSON API (works for many tweets, no auth required)
+        val syndicationResult = trySyndicationApi(tweetId, url)
+        if (syndicationResult != null) return syndicationResult
+
+        // Fallback: return a minimal HTML document with the link
+        val html = buildFallbackHtml("Tweet", url)
+        return FetchResult.Document(html.toByteArray(Charsets.UTF_8), "text/html", url)
+    }
+
+    private fun trySyndicationApi(tweetId: String, sourceUrl: String): FetchResult? {
+        return try {
+            val apiUrl = "$SYNDICATION_URL?id=$tweetId&token=0"
+            val conn = openConnection(apiUrl)
+            try {
+                conn.connect()
+                if (conn.responseCode !in 200..299) return null
+                val json = conn.inputStream.use { it.readNBytes(MAX_DOWNLOAD_BYTES.toInt()) }.decodeToString()
+
+                val text = extractJsonString(json, "text") ?: return null
+                val userName = extractJsonString(json, "name") ?: ""
+                val screenName = extractJsonString(json, "screen_name") ?: ""
+                val createdAt = extractJsonString(json, "created_at") ?: ""
+
+                val html = buildTweetHtml(text, userName, screenName, createdAt, sourceUrl)
+                FetchResult.Document(html.toByteArray(Charsets.UTF_8), "text/html", sourceUrl)
+            } finally {
+                conn.disconnect()
+            }
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private fun fetchInstagram(url: String): FetchResult {
@@ -165,6 +215,26 @@ object UrlContentFetcher {
             if (match != null) return match.groupValues[1]
         }
         return null
+    }
+
+    private fun buildTweetHtml(text: String, userName: String, screenName: String, createdAt: String, sourceUrl: String): String = buildString {
+        val displayName = if (userName.isNotBlank()) userName else screenName
+        append("<!DOCTYPE html><html><head><meta charset=\"utf-8\">")
+        append("<title>Tweet by $displayName</title></head><body>")
+        if (displayName.isNotBlank()) append("<p><strong>$displayName</strong>")
+        if (screenName.isNotBlank()) append(" <em>@$screenName</em>")
+        if (displayName.isNotBlank()) append("</p>")
+        append("<blockquote><p>$text</p></blockquote>")
+        if (createdAt.isNotBlank()) append("<p><small>$createdAt</small></p>")
+        append("<p><a href=\"$sourceUrl\">Source</a></p>")
+        append("</body></html>")
+    }
+
+    private fun buildFallbackHtml(title: String, sourceUrl: String): String = buildString {
+        append("<!DOCTYPE html><html><head><meta charset=\"utf-8\">")
+        append("<title>$title</title></head><body>")
+        append("<p><a href=\"$sourceUrl\">$sourceUrl</a></p>")
+        append("</body></html>")
     }
 
     private fun buildInstagramHtml(title: String, description: String, imageUrl: String?, sourceUrl: String): String = buildString {

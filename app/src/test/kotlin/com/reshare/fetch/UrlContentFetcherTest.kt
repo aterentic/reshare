@@ -57,6 +57,38 @@ class UrlContentFetcherTest {
         assertEquals("value", UrlContentFetcher.extractJsonString(json, "html"))
     }
 
+    // --- extractTweetId ---
+
+    @Test
+    fun `extractTweetId from twitter dot com URL`() {
+        assertEquals("123456", UrlContentFetcher.extractTweetId("https://twitter.com/user/status/123456"))
+    }
+
+    @Test
+    fun `extractTweetId from x dot com URL`() {
+        assertEquals("789", UrlContentFetcher.extractTweetId("https://x.com/someone/status/789"))
+    }
+
+    @Test
+    fun `extractTweetId with trailing slash`() {
+        assertEquals("123", UrlContentFetcher.extractTweetId("https://x.com/user/status/123/"))
+    }
+
+    @Test
+    fun `extractTweetId with query params`() {
+        assertEquals("123", UrlContentFetcher.extractTweetId("https://x.com/user/status/123?s=20"))
+    }
+
+    @Test
+    fun `extractTweetId returns null for non-status URL`() {
+        assertNull(UrlContentFetcher.extractTweetId("https://x.com/user"))
+    }
+
+    @Test
+    fun `extractTweetId returns null for non-numeric ID`() {
+        assertNull(UrlContentFetcher.extractTweetId("https://x.com/user/status/abc"))
+    }
+
     // --- extractMetaContent ---
 
     @Test
