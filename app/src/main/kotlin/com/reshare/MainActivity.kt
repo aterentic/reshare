@@ -18,6 +18,9 @@ import com.reshare.converter.OutputFormat
 import com.reshare.converter.PandocConverter
 import com.reshare.converter.PdfConverter
 import com.reshare.converter.Template
+import com.reshare.fetch.FetchResult
+import com.reshare.fetch.UrlContentFetcher
+import com.reshare.fetch.UrlDetector
 import com.reshare.notification.NotificationPermissionManager
 import com.reshare.notification.ProgressNotifier
 import com.reshare.share.ShareHandler
@@ -95,6 +98,13 @@ class MainActivity : AppCompatActivity() {
         val conversionInput = when {
             intent.hasExtra(Intent.EXTRA_TEXT) -> {
                 val text = intent.getStringExtra(Intent.EXTRA_TEXT) ?: ""
+
+                val url = UrlDetector.extractUrl(text)
+                if (url != null) {
+                    fetchUrlContent(url)
+                    return
+                }
+
                 val bytes = text.toByteArray(Charsets.UTF_8)
 
                 if (bytes.size > MAX_FILE_SIZE) {
@@ -195,6 +205,42 @@ class MainActivity : AppCompatActivity() {
                 finish()
             }
         ).show(supportFragmentManager, "format_picker")
+    }
+
+    private fun handleImageInput(imageBytes: ByteArray, mimeType: String) {
+        // Stub — will be wired to ImageConverter in a later commit
+        showError(ConversionError.InputError("Image conversion not yet available"))
+    }
+
+    private fun fetchUrlContent(url: String) {
+        val progressNotifier = ProgressNotifier(this)
+        progressNotifier.showProgress("Fetching content...")
+
+        lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) { UrlContentFetcher.fetch(url) }
+
+            progressNotifier.hideProgress()
+
+            when (result) {
+                is FetchResult.Document -> {
+                    val inputFormat = InputFormat.fromMimeType(result.contentType) ?: InputFormat.HTML
+                    pendingInputName = result.sourceUrl
+
+                    val input = PandocConverter.ConversionInput(
+                        content = result.content,
+                        contentUri = null,
+                        inputFormat = inputFormat
+                    )
+                    showFormatPicker(input)
+                }
+                is FetchResult.Image -> {
+                    handleImageInput(result.content, result.contentType)
+                }
+                is FetchResult.Error -> {
+                    showError(ConversionError.InputError(result.message))
+                }
+            }
+        }
     }
 
     private fun showTemplatePickerOrConvert(input: PandocConverter.ConversionInput, outputFormat: OutputFormat) {
