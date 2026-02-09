@@ -21,11 +21,13 @@ enum class InputFormat(val pandocFlag: String, val mimeTypes: List<String>, val 
     ODT("odt", listOf("application/vnd.oasis.opendocument.text"), requiresFileInput = true),
     EPUB("epub", listOf("application/epub+zip"), requiresFileInput = true),
     LATEX("latex", listOf("application/x-latex", "application/x-tex")),
-    PDF("html", listOf("application/pdf"), requiresFileInput = true);
+    PDF("html", listOf("application/pdf"), requiresFileInput = true),
+    IMAGE("html", listOf("image/png", "image/jpeg", "image/webp", "image/gif"), requiresFileInput = true);
 
     companion object {
         fun fromMimeType(mimeType: String): InputFormat? =
             entries.find { mimeType in it.mimeTypes }
+                ?: if (mimeType.startsWith("image/")) IMAGE else null
     }
 }
 

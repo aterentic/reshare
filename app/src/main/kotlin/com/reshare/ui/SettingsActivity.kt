@@ -159,6 +159,7 @@ class SettingsActivity : AppCompatActivity() {
         InputFormat.EPUB -> "EPUB"
         InputFormat.LATEX -> "LaTeX"
         InputFormat.PDF -> "PDF"
+        InputFormat.IMAGE -> "Image"
     }
 
     private fun outputFormatLabel(format: OutputFormat): String = when (format) {

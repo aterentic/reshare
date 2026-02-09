@@ -116,6 +116,10 @@ class FormatPickerDialog : BottomSheetDialogFragment() {
         val input = inputFormat ?: return OutputFormat.entries
         val enabled = enabledFormats ?: OutputFormat.entries.toSet()
 
+        if (input == InputFormat.IMAGE) {
+            return listOf(OutputFormat.PDF).filter { it in enabled }
+        }
+
         val matchingOutput: OutputFormat? = when (input) {
             InputFormat.PLAIN -> OutputFormat.PLAIN
             InputFormat.MARKDOWN -> OutputFormat.MARKDOWN
@@ -124,6 +128,7 @@ class FormatPickerDialog : BottomSheetDialogFragment() {
             InputFormat.LATEX -> OutputFormat.LATEX
             InputFormat.PDF -> OutputFormat.PDF
             InputFormat.ORG, InputFormat.ODT, InputFormat.EPUB -> null
+            InputFormat.IMAGE -> null // handled above
         }
 
         return OutputFormat.entries.filter { format ->

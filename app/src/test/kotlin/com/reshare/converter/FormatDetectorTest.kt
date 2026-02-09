@@ -358,7 +358,15 @@ class FormatDetectorTest {
     @Test
     fun `fromMimeType returns null for unknown mime type`() {
         assertNull(InputFormat.fromMimeType("application/octet-stream"))
-        assertNull(InputFormat.fromMimeType("image/png"))
+    }
+
+    @Test
+    fun `fromMimeType returns IMAGE for image types`() {
+        assertEquals(InputFormat.IMAGE, InputFormat.fromMimeType("image/png"))
+        assertEquals(InputFormat.IMAGE, InputFormat.fromMimeType("image/jpeg"))
+        assertEquals(InputFormat.IMAGE, InputFormat.fromMimeType("image/webp"))
+        assertEquals(InputFormat.IMAGE, InputFormat.fromMimeType("image/gif"))
+        assertEquals(InputFormat.IMAGE, InputFormat.fromMimeType("image/bmp"))
     }
 
     @Test
