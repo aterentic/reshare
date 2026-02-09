@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.reshare.converter.ConversionError
 import com.reshare.converter.FormatDetector
+import com.reshare.converter.ImageConverter
 import com.reshare.converter.InputFormat
 import com.reshare.converter.MAX_FILE_SIZE
 import com.reshare.converter.OutputFormat
@@ -149,6 +150,12 @@ class MainActivity : AppCompatActivity() {
 
                 pendingInputName = getFileName(uri) ?: "Shared file"
 
+                if (inputFormat == InputFormat.IMAGE) {
+                    val streamMimeType = contentResolver.getType(uri) ?: mimeType(inputFormat)
+                    handleImageInput(content, streamMimeType)
+                    return
+                }
+
                 PandocConverter.ConversionInput(
                     content = content,
                     contentUri = null,
@@ -208,8 +215,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleImageInput(imageBytes: ByteArray, mimeType: String) {
-        // Stub — will be wired to ImageConverter in a later commit
-        showError(ConversionError.InputError("Image conversion not yet available"))
+        val progressNotifier = ProgressNotifier(this)
+        progressNotifier.showProgress("Converting image...")
+
+        lifecycleScope.launch {
+            try {
+                val result = ImageConverter(this@MainActivity).convertToPdf(imageBytes, mimeType)
+
+                progressNotifier.hideProgress()
+
+                result.onSuccess { file ->
+                    recordHistory(file, pendingInputName, InputFormat.IMAGE, OutputFormat.PDF)
+                    showPostConversionDialog(file, OutputFormat.PDF)
+                }.onFailure { error ->
+                    showError(error as? ConversionError ?: ConversionError.ProcessFailed(-1, error.message ?: "Unknown error"))
+                }
+            } catch (e: Exception) {
+                progressNotifier.hideProgress()
+                showError(ConversionError.ProcessFailed(-1, e.message ?: "Unknown error"))
+            }
+        }
     }
 
     private fun fetchUrlContent(url: String) {
@@ -389,11 +414,15 @@ class MainActivity : AppCompatActivity() {
                 val inputName = getFileName(uri) ?: "Shared file"
 
                 try {
-                    val result = withContext(Dispatchers.IO) {
-                        if (outputFormat == OutputFormat.PDF) {
-                            PdfConverter(this@MainActivity).convertToPdf(input, cssContent)
-                        } else {
-                            PandocConverter(this@MainActivity).convert(input, outputFormat, cssFile)
+                    val result = if (inputFormat == InputFormat.IMAGE) {
+                        ImageConverter(this@MainActivity).convertToPdf(content, contentResolver.getType(uri) ?: "image/png")
+                    } else {
+                        withContext(Dispatchers.IO) {
+                            if (outputFormat == OutputFormat.PDF) {
+                                PdfConverter(this@MainActivity).convertToPdf(input, cssContent)
+                            } else {
+                                PandocConverter(this@MainActivity).convert(input, outputFormat, cssFile)
+                            }
                         }
                     }
 
@@ -523,6 +552,9 @@ class MainActivity : AppCompatActivity() {
         }
         finish()
     }
+
+    private fun mimeType(format: InputFormat): String =
+        format.mimeTypes.firstOrNull() ?: "application/octet-stream"
 
     /**
      * Reads the CSS content for [template] from assets.
