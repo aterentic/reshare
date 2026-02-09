@@ -12,9 +12,11 @@ import android.widget.GridLayout
 import android.widget.ImageButton
 import android.widget.Toast
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.materialswitch.MaterialSwitch
 import com.reshare.R
 import com.reshare.converter.InputFormat
 import com.reshare.converter.OutputFormat
+import com.reshare.share.SharePreferences
 
 /**
  * Bottom sheet dialog for selecting output format.
@@ -44,7 +46,17 @@ class FormatPickerDialog : BottomSheetDialogFragment() {
             onCancelled?.invoke()
         }
 
+        setupPlainTextSwitch(view)
         populateGrid(view)
+    }
+
+    private fun setupPlainTextSwitch(view: View) {
+        val switch = view.findViewById<MaterialSwitch>(R.id.switchPlainText)
+        val sharePreferences = SharePreferences(requireContext())
+        switch.isChecked = sharePreferences.shareTextFormatsAsText
+        switch.setOnCheckedChangeListener { _, checked ->
+            sharePreferences.shareTextFormatsAsText = checked
+        }
     }
 
     private fun populateGrid(view: View) {

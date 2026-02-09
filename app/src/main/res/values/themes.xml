@@ -1,19 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.ReShare" parent="Theme.Material3.Light">
-        <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryContainer">@color/primary_dark</item>
-        <item name="colorSecondary">@color/accent</item>
+    <style name="Theme.ReShare" parent="Theme.Material3.DayNight">
     </style>
 
-    <style name="Theme.Transparent" parent="Theme.Material3.Light.NoActionBar">
+    <style name="Theme.Transparent" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowContentOverlay">@null</item>
     </style>
 
-    <style name="Theme.NoDisplay" parent="Theme.Material3.Light.NoActionBar">
+    <style name="Theme.NoDisplay" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowNoTitle">true</item>

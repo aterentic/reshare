@@ -38,12 +38,12 @@
     <string name="settings_header">Settings</string>
     <string name="settings_notifications_title">Show notifications</string>
     <string name="settings_notifications_summary">Display progress and error notifications during conversion</string>
-    <string name="settings_text_sharing_title">Share text formats as plain text</string>
-    <string name="settings_text_sharing_summary">Share Markdown, HTML, LaTeX, and plain text output as text instead of files</string>
-
-    <!-- Format matrix -->
-    <string name="settings_format_matrix_header">Allowed conversions</string>
+    <string name="settings_input_formats_header">Input formats</string>
+    <string name="settings_output_formats_header">Output formats</string>
     <string name="no_formats_configured">No output formats configured for this input type</string>
+
+    <!-- Format picker -->
+    <string name="prefer_plain_text">Prefer plain text</string>
 
     <!-- History -->
     <string name="history_title">Conversion History</string>

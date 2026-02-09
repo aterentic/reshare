@@ -4,89 +4,81 @@ import android.content.Context
 import com.reshare.converter.InputFormat
 import com.reshare.converter.OutputFormat
 import com.reshare.converter.Template
-import org.json.JSONObject
+import org.json.JSONArray
 
 /**
- * Reads and writes the format matrix from SharedPreferences.
+ * Reads and writes format preferences from SharedPreferences.
  *
- * The matrix maps each [InputFormat] to the set of [OutputFormat]s that should
- * be offered in the format picker. Default: all output formats enabled for
- * every input format.
+ * Stores two independent sets: enabled input formats and enabled output formats.
+ * All conversions between enabled inputs and enabled outputs are allowed.
  */
 class FormatPreferences(context: Context) {
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     /**
+     * Returns the set of enabled input formats.
+     * Default: all input formats enabled.
+     */
+    fun enabledInputFormats(): Set<InputFormat> {
+        val json = prefs.getString(KEY_ENABLED_INPUTS, null) ?: return InputFormat.entries.toSet()
+        return try {
+            val array = JSONArray(json)
+            (0 until array.length()).mapNotNull { i ->
+                InputFormat.entries.find { it.name == array.getString(i) }
+            }.toSet()
+        } catch (_: Exception) {
+            InputFormat.entries.toSet()
+        }
+    }
+
+    /**
+     * Sets whether [format] is enabled as an input format.
+     */
+    fun setInputEnabled(format: InputFormat, enabled: Boolean) {
+        val current = enabledInputFormats().toMutableSet()
+        if (enabled) current.add(format) else current.remove(format)
+        saveSet(KEY_ENABLED_INPUTS, current.map { it.name })
+    }
+
+    /**
+     * Returns the set of enabled output formats (independent of input).
+     * Default: all output formats enabled.
+     */
+    fun enabledOutputFormatsAll(): Set<OutputFormat> {
+        val json = prefs.getString(KEY_ENABLED_OUTPUTS, null) ?: return OutputFormat.entries.toSet()
+        return try {
+            val array = JSONArray(json)
+            (0 until array.length()).mapNotNull { i ->
+                OutputFormat.entries.find { it.name == array.getString(i) }
+            }.toSet()
+        } catch (_: Exception) {
+            OutputFormat.entries.toSet()
+        }
+    }
+
+    /**
+     * Sets whether [format] is enabled as an output format.
+     */
+    fun setOutputEnabled(format: OutputFormat, enabled: Boolean) {
+        val current = enabledOutputFormatsAll().toMutableSet()
+        if (enabled) current.add(format) else current.remove(format)
+        saveSet(KEY_ENABLED_OUTPUTS, current.map { it.name })
+    }
+
+    /**
      * Returns the set of enabled output formats for [inputFormat].
+     * Returns empty if the input format itself is disabled.
      */
     fun enabledOutputFormats(inputFormat: InputFormat): Set<OutputFormat> {
-        val matrix = loadMatrix()
-        return matrix[inputFormat] ?: OutputFormat.entries.toSet()
+        if (inputFormat !in enabledInputFormats()) return emptySet()
+        return enabledOutputFormatsAll()
     }
 
-    /**
-     * Sets whether [outputFormat] is enabled for [inputFormat].
-     */
-    fun setEnabled(inputFormat: InputFormat, outputFormat: OutputFormat, enabled: Boolean) {
-        val matrix = loadMatrix()
-        val current = matrix[inputFormat] ?: OutputFormat.entries.toMutableSet()
-        val updated = current.toMutableSet()
-        if (enabled) updated.add(outputFormat) else updated.remove(outputFormat)
-        matrix[inputFormat] = updated
-        saveMatrix(matrix)
-    }
-
-    /**
-     * Returns true if [outputFormat] is enabled for [inputFormat].
-     */
-    fun isEnabled(inputFormat: InputFormat, outputFormat: OutputFormat): Boolean {
-        return outputFormat in enabledOutputFormats(inputFormat)
-    }
-
-    private fun loadMatrix(): MutableMap<InputFormat, Set<OutputFormat>> {
-        val json = prefs.getString(KEY_FORMAT_MATRIX, null) ?: return defaultMatrix()
-        return try {
-            val root = JSONObject(json)
-            val result = mutableMapOf<InputFormat, Set<OutputFormat>>()
-            for (inputName in root.keys()) {
-                val inputFormat = InputFormat.entries.find { it.name == inputName } ?: continue
-                val array = root.getJSONArray(inputName)
-                val outputs = mutableSetOf<OutputFormat>()
-                for (i in 0 until array.length()) {
-                    val outputFormat = OutputFormat.entries.find { it.name == array.getString(i) }
-                    if (outputFormat != null) outputs.add(outputFormat)
-                }
-                result[inputFormat] = outputs
-            }
-            // Fill in any input formats missing from persisted data (new formats added later)
-            for (input in InputFormat.entries) {
-                if (input !in result) result[input] = OutputFormat.entries.toSet()
-            }
-            result
-        } catch (e: Exception) {
-            defaultMatrix()
-        }
-    }
-
-    private fun saveMatrix(matrix: Map<InputFormat, Set<OutputFormat>>) {
-        val root = JSONObject()
-        for ((input, outputs) in matrix) {
-            val array = org.json.JSONArray()
-            for (output in outputs) array.put(output.name)
-            root.put(input.name, array)
-        }
-        prefs.edit().putString(KEY_FORMAT_MATRIX, root.toString()).apply()
-    }
-
-    private fun defaultMatrix(): MutableMap<InputFormat, Set<OutputFormat>> {
-        val all = OutputFormat.entries.toSet()
-        return InputFormat.entries.associateWith { input ->
-            when (input) {
-                InputFormat.PDF -> all - OutputFormat.PDF
-                else -> all
-            }
-        }.toMutableMap()
+    private fun saveSet(key: String, names: List<String>) {
+        val array = JSONArray()
+        for (name in names) array.put(name)
+        prefs.edit().putString(key, array.toString()).apply()
     }
 
     /**
@@ -133,7 +125,8 @@ class FormatPreferences(context: Context) {
 
     companion object {
         private const val PREFS_NAME = "format_prefs"
-        private const val KEY_FORMAT_MATRIX = "format_matrix"
+        private const val KEY_ENABLED_INPUTS = "enabled_inputs"
+        private const val KEY_ENABLED_OUTPUTS = "enabled_outputs"
         private const val KEY_FAVORITES = "favorite_formats"
         private const val KEY_TEMPLATE_PREFIX = "template_"
     }

@@ -2,7 +2,11 @@
 
 ## Active
 
-(empty — pick from [backlog](BACKLOG.md))
+### UI Redesign
+- [x] App icon — connected-dots triangle (adaptive + monochrome) → [spec](specs/ui-redesign.md)
+- [x] M3 dynamic color — Material You theming, light + dark → [spec](specs/ui-redesign.md)
+- [x] Settings redesign — replace format matrix with filter chips, remove text sharing toggle → [spec](specs/ui-redesign.md)
+- [x] Move "Prefer plain text" toggle to share dialog → [spec](specs/ui-redesign.md)
 
 ## Done
 

@@ -4,25 +4,21 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Circle background -->
-    <path
-        android:fillColor="#424242"
-        android:pathData="M54,54m-26,0a26,26,0,1,1,52,0a26,26,0,1,1,-52,0" />
     <!-- Lines connecting all three dots -->
     <path
         android:pathData="M42,54L61,42 M42,54L61,66 M61,42L61,66"
-        android:strokeColor="#FFFFFF"
+        android:strokeColor="#000000"
         android:strokeWidth="4.5" />
     <!-- Left dot -->
     <path
-        android:fillColor="#FFFFFF"
+        android:fillColor="#000000"
         android:pathData="M42,54m-6,0a6,6,0,1,1,12,0a6,6,0,1,1,-12,0" />
     <!-- Top-right dot -->
     <path
-        android:fillColor="#FFFFFF"
+        android:fillColor="#000000"
         android:pathData="M61,42m-6,0a6,6,0,1,1,12,0a6,6,0,1,1,-12,0" />
     <!-- Bottom-right dot -->
     <path
-        android:fillColor="#FFFFFF"
+        android:fillColor="#000000"
         android:pathData="M61,66m-6,0a6,6,0,1,1,12,0a6,6,0,1,1,-12,0" />
 </vector>

@@ -64,45 +64,31 @@
 
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/text_sharing_setting"
-            android:layout_width="match_parent"
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingVertical="12dp"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true">
+            android:text="@string/settings_input_formats_header"
+            android:textSize="14sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:layout_marginBottom="8dp" />
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/settings_text_sharing_title"
-                    android:textSize="16sp"
-                    android:textColor="?android:attr/textColorPrimary" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/settings_text_sharing_summary"
-                    android:textSize="14sp"
-                    android:textColor="?android:attr/textColorSecondary" />
-
-            </LinearLayout>
-
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/switch_text_sharing"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-        </LinearLayout>
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/input_formats_chips"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
     </LinearLayout>
 
@@ -120,22 +106,15 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/settings_format_matrix_header"
+            android:text="@string/settings_output_formats_header"
             android:textSize="14sp"
             android:textColor="?android:attr/textColorSecondary"
             android:layout_marginBottom="8dp" />
 
-        <HorizontalScrollView
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/output_formats_chips"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <LinearLayout
-                android:id="@+id/format_matrix_container"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical" />
-
-        </HorizontalScrollView>
+            android:layout_height="wrap_content" />
 
     </LinearLayout>
 
