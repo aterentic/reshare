@@ -40,7 +40,8 @@ sealed class FetchResult {
 }
 
 /**
- * Fetches content from URLs with special handling for Twitter and Instagram.
+ * Fetches content from URLs with special handling for Instagram.
+ * Twitter/X URLs use the generic fetcher (oEmbed API is defunct).
  * Uses java.net.HttpURLConnection — no external dependencies.
  */
 object UrlContentFetcher {
@@ -54,7 +55,6 @@ object UrlContentFetcher {
      */
     fun fetch(url: String): FetchResult = try {
         when {
-            UrlDetector.isTwitterUrl(url) -> fetchTwitter(url)
             UrlDetector.isInstagramUrl(url) -> fetchInstagram(url)
             else -> fetchGeneric(url)
         }
@@ -62,16 +62,6 @@ object UrlContentFetcher {
         FetchResult.Error("Network error: ${e.message}")
     } catch (e: Exception) {
         FetchResult.Error("Failed to fetch: ${e.message}")
-    }
-
-    private fun fetchTwitter(url: String): FetchResult {
-        val oembedUrl = "https://publish.twitter.com/oembed?url=${encodeUrl(url)}"
-        val json = httpGet(oembedUrl).decodeToString()
-        val html = extractJsonString(json, "html")
-            ?: return FetchResult.Error("Could not parse Twitter oEmbed response")
-        val author = extractJsonString(json, "author_name") ?: ""
-        val fullHtml = buildTwitterHtml(html, author, url)
-        return FetchResult.Document(fullHtml.toByteArray(Charsets.UTF_8), "text/html", url)
     }
 
     private fun fetchInstagram(url: String): FetchResult {
@@ -127,9 +117,6 @@ object UrlContentFetcher {
         return conn
     }
 
-    private fun encodeUrl(url: String): String =
-        java.net.URLEncoder.encode(url, "UTF-8")
-
     // --- Parsing helpers (internal for testing) ---
 
     internal fun extractJsonString(json: String, key: String): String? {
@@ -178,14 +165,6 @@ object UrlContentFetcher {
             if (match != null) return match.groupValues[1]
         }
         return null
-    }
-
-    private fun buildTwitterHtml(embedHtml: String, author: String, sourceUrl: String): String = buildString {
-        append("<!DOCTYPE html><html><head><meta charset=\"utf-8\">")
-        append("<title>Tweet by $author</title></head><body>")
-        append(embedHtml)
-        append("<p><a href=\"$sourceUrl\">Source</a></p>")
-        append("</body></html>")
     }
 
     private fun buildInstagramHtml(title: String, description: String, imageUrl: String?, sourceUrl: String): String = buildString {
