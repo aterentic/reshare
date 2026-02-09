@@ -61,18 +61,15 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setupNotificationToggle() {
         updateNotificationSwitchState()
+        notificationSwitch.isClickable = false
 
         notificationSetting.setOnClickListener {
-            toggleNotifications()
-        }
-
-        notificationSwitch.setOnClickListener {
             toggleNotifications()
         }
     }
 
     private fun toggleNotifications() {
-        if (notificationSwitch.isChecked) {
+        if (isNotificationPermissionGranted()) {
             openNotificationSettings()
         } else {
             requestNotificationPermission()
