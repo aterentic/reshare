@@ -1,0 +1,7 @@
+URL and image input support.
+
+- Share a URL to fetch and convert web content
+- Twitter/X support via syndication API
+- Instagram support via OG meta tag scraping
+- Share images (PNG, JPEG, WebP, GIF) to convert to PDF
+- Batch image conversion support

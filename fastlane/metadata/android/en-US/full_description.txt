@@ -1,15 +1,17 @@
-ReShare converts documents between formats directly on your device. Share a file to ReShare from any app, pick your target format, and reshare the converted result -- all without leaving your phone.
+ReShare converts documents, URLs, and images between formats directly on your device. Share a file, link, or image to ReShare from any app, pick your target format, and reshare the converted result -- all without leaving your phone.
 
 Powered by Pandoc, ReShare supports a wide range of document formats:
 
 INPUT FORMATS
+- URLs (web pages, tweets, Instagram posts)
+- Images (PNG, JPEG, WebP, GIF) -- converted to PDF
 - Microsoft Word (.docx)
+- PDF
 - HTML
 - EPUB
 - LaTeX
 - Markdown
 - Org mode
-- CSV
 - And more
 
 OUTPUT FORMATS
@@ -18,23 +20,23 @@ OUTPUT FORMATS
 - HTML
 - Markdown
 - Plain text
-- Org mode
-- EPUB
 - LaTeX
 - And more
 
 KEY FEATURES
-- Offline conversion: all processing happens locally on your device
-- No data collection: no analytics, no tracking, no network requests
+- URL fetching: share a link and ReShare fetches and converts the content
+- Image to PDF: share photos and get clean PDF output
+- Local conversion: document processing happens on your device using Pandoc
+- No data collection: no analytics, no tracking
 - Share integration: receive files from any app via Android's share menu
 - Conversion history: browse and re-share past conversions
 - Template support: apply custom templates to your conversions
 - Text preview: inspect converted text output before sharing
 
 HOW IT WORKS
-1. Share a document to ReShare from any app
+1. Share a document, URL, or image to ReShare from any app
 2. Choose your desired output format
-3. ReShare converts the file using the bundled Pandoc engine
+3. ReShare converts the content
 4. Share the result to any app, or save it to your device
 
 ReShare is free and open source.
